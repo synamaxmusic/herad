@@ -90,23 +90,23 @@ iC_Vib		equ	19h              ; Carrier Frequency Vibrato
 iC_KSR		equ	1Ah              ; Carrier Key scaling/envelope rate
 
 ; HERAD Instrument Macros start here
-iX_FBScaleAFT	equ	1Bh			; Feedback Scaling - Aftertouch
+iX_FBScaleAFT	equ	1Bh              ; Feedback Scaling - Aftertouch
 
-iM_Wave		equ	1Ch			; Modulator Waveform Select
-iC_Wave		equ	1Dh			; Carrier Waveform Select
+iM_Wave		equ	1Ch              ; Modulator Waveform Select
+iC_Wave		equ	1Dh              ; Carrier Waveform Select
 
-iX_MLevelScale	equ	1Eh			; Modulator Output Level Scaling - Velocity
-iX_CLevelScale	equ	1Fh			; Carrier Output Level Scaling - Velocity
+iX_MLevelScale	equ	1Eh              ; Modulator Output Level Scaling - Velocity
+iX_CLevelScale	equ	1Fh              ; Carrier Output Level Scaling - Velocity
 
-iX_FBScaleVEL	equ	20h			; Feedback Scaling - Velocity
-iX_SlideTrans	equ	21h			; Pitch Slide Range Flag / Transpose bytes
+iX_FBScaleVEL	equ	20h              ; Feedback Scaling - Velocity
+iX_SlideTrans	equ	21h              ; Pitch Slide Range Flag / Transpose bytes
 
-iX_SlideDurRange equ	23h			; Pitch Slide Duration / Pitch Slide Range bytes
+iX_SlideDurRange equ	23h              ; Pitch Slide Duration / Pitch Slide Range bytes
 
 ; 25h is unused
 
-iX_MLevelScaleAFT equ	26h			; Modulator Output Level Scaling - Aftertouch
-iX_CLevelScaleAFT equ	27h			; Carrier Output Level Scaling - Aftertouch 
+iX_MLevelScaleAFT equ	26h              ; Modulator Output Level Scaling - Aftertouch
+iX_CLevelScaleAFT equ	27h              ; Carrier Output Level Scaling - Aftertouch 
 
 ;; End of Instrument offsets	
 
