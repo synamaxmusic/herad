@@ -61,14 +61,14 @@ InstSize	equ	28h			; The size of one instrument chunk
 iDrumMode	equ	0FFh			; FF = DrumMap, any other mode value is regular FM instrument
 ;  0x01 appears to be metadata, possibly an Instrument ID number
 
-iM_KSL		equ	2			; Modulator Key scaling level
-iM_Multiple	equ	3			; Modulator Frequency multiplier
-iFeedback	equ	4			; Feedback
-iM_Attack	equ	5			; Modulator Attack
-iM_Sus		equ	6			; Modulator Sustain
-iM_EG		equ	7			; Modulator Envelope gain
-iM_Decay	equ	8			; Modulator Decay
-iM_Rel		equ	9			; Modulator Release
+iM_KSL		equ	2  			; Modulator Key scaling level
+iM_Multiple	equ	3  			; Modulator Frequency multiplier
+iFeedback	equ	4  			; Feedback
+iM_Attack	equ	5  			; Modulator Attack
+iM_Sus		equ	6  			; Modulator Sustain
+iM_EG		equ	7  			; Modulator Envelope gain
+iM_Decay	equ	8  			; Modulator Decay
+iM_Rel		equ	9  			; Modulator Release
 iM_Level	equ	0Ah			; Modulator Output Level
 iM_AM		equ	0Bh			; Modulator Amplitude modulation (Tremolo)
 iM_Vib		equ	0Ch			; Modulator Frequency Vibrato
