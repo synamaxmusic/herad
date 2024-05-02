@@ -77,17 +77,17 @@ iM_KSR		equ	0Dh			; Modulator Key scaling/envelope rate
 iConnector	equ	0Eh			; Connector
 
 iC_KSL		equ	0Fh			; Carrier Key scaling level
-iC_Multiple     equ	10h			; Carrier Frequency multiplier			
-iPanning        equ     11h                     ; Panning (OPL3)
-iC_Attack       equ     12h                     ; Carrier Attack
-iC_Sus	        equ     13h                     ; Carrier Sustain
-iC_EG	        equ     14h                     ; Carrier Envelope gain
-iC_Decay        equ     15h                     ; Carrier Decay
-iC_Rel	        equ     16h                     ; Carrier Release
-iC_Level        equ     17h                     ; Carrier Output Level
-iC_AM	        equ     18h                     ; Carrier Amplitude modulation (Trem
-iC_Vib	        equ     19h                     ; Carrier Frequency Vibrato
-iC_KSR	        equ     1Ah                     ; Carrier Key scaling/envelope rate
+iC_Multiple	equ	10h			; Carrier Frequency multiplier
+iPanning	equ	11h			; Panning (OPL3)
+iC_Attack	equ	12h			; Carrier Attack
+iC_Sus		equ	13h			; Carrier Sustain
+iC_EG		equ	14h			; Carrier Envelope gain
+iC_Decay	equ	15h			; Carrier Decay
+iC_Rel		equ	16h			; Carrier Release
+iC_Level	equ	17h			; Carrier Output Level
+iC_AM		equ	18h			; Carrier Amplitude modulation (Trem
+iC_Vib		equ	19h			; Carrier Frequency Vibrato
+iC_KSR		equ	1Ah			; Carrier Key scaling/envelope rate
 
 ; HERAD Instrument Macros start here
 iX_FBScaleAFT	equ	1Bh			; Feedback Scaling - Aftertouch
@@ -99,7 +99,7 @@ iX_MLevelScale	equ	1Eh			; Modulator Output Level Scaling - Velocity
 iX_CLevelScale	equ	1Fh			; Carrier Output Level Scaling - Velocity
 
 iX_FBScaleVEL	equ	20h			; Feedback Scaling - Velocity
-iX_SlideTrans	equ     21h			; Pitch Slide Range Flag / Transpose bytes
+iX_SlideTrans	equ	21h			; Pitch Slide Range Flag / Transpose bytes
 
 iX_SlideDurRange equ	23h			; Pitch Slide Duration / Pitch Slide Range bytes
 
