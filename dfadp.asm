@@ -42,10 +42,10 @@
 	
 ; ---------------------------------------------------------------------------
 ; Constants
-TrackNum	equ	9			; 9 tracks, one for each OPL2 channel
-AllTrackPtrs	equ	TrackNum*2		; 2 bytes for each of the 9 MIDI tracks current pointers
-MidiTickValue	equ	96			; HERAD uses 96 MIDI ticks per second (PPQN)
-SlideCenter	equ	64			; Slide range center, just like the MIDI Standard
+TrackNum	equ	9                ; 9 tracks, one for each OPL2 channel
+AllTrackPtrs	equ	TrackNum*2       ; 2 bytes for each of the 9 MIDI tracks current pointers
+MidiTickValue	equ	96               ; HERAD uses 96 MIDI ticks per second (PPQN)
+SlideCenter	equ	64               ; Slide range center, just like the MIDI Standard
 
 ; Song Constants
 
