@@ -55,39 +55,39 @@ sLoopCount	equ	2Eh
 sSpeed		equ	30h
 
 ; Instrument Chunk offsets and constants
-InstSize	equ	28h			; The size of one instrument chunk
+InstSize	equ	28h              ; The size of one instrument chunk
 
 ;  0x00 is the Instrument "Mode"
-iDrumMode	equ	0FFh			; FF = DrumMap, any other mode value is regular FM instrument
+iDrumMode	equ	0FFh             ; FF = DrumMap, any other mode value is regular FM instrument
 ;  0x01 appears to be metadata, possibly an Instrument ID number
 
-iM_KSL		equ	2  			; Modulator Key scaling level
-iM_Multiple	equ	3  			; Modulator Frequency multiplier
-iFeedback	equ	4  			; Feedback
-iM_Attack	equ	5  			; Modulator Attack
-iM_Sus		equ	6  			; Modulator Sustain
-iM_EG		equ	7  			; Modulator Envelope gain
-iM_Decay	equ	8  			; Modulator Decay
-iM_Rel		equ	9  			; Modulator Release
-iM_Level	equ	0Ah			; Modulator Output Level
-iM_AM		equ	0Bh			; Modulator Amplitude modulation (Tremolo)
-iM_Vib		equ	0Ch			; Modulator Frequency Vibrato
-iM_KSR		equ	0Dh			; Modulator Key scaling/envelope rate
+iM_KSL		equ	2                ; Modulator Key scaling level
+iM_Multiple	equ	3                ; Modulator Frequency multiplier
+iFeedback	equ	4                ; Feedback
+iM_Attack	equ	5                ; Modulator Attack
+iM_Sus		equ	6                ; Modulator Sustain
+iM_EG		equ	7                ; Modulator Envelope gain
+iM_Decay	equ	8                ; Modulator Decay
+iM_Rel		equ	9                ; Modulator Release
+iM_Level	equ	0Ah              ; Modulator Output Level
+iM_AM		equ	0Bh              ; Modulator Amplitude modulation (Tremolo)
+iM_Vib		equ	0Ch              ; Modulator Frequency Vibrato
+iM_KSR		equ	0Dh              ; Modulator Key scaling/envelope rate
 
-iConnector	equ	0Eh			; Connector
+iConnector	equ	0Eh              ; Connector
 
-iC_KSL		equ	0Fh			; Carrier Key scaling level
-iC_Multiple	equ	10h			; Carrier Frequency multiplier
-iPanning	equ	11h			; Panning (OPL3)
-iC_Attack	equ	12h			; Carrier Attack
-iC_Sus		equ	13h			; Carrier Sustain
-iC_EG		equ	14h			; Carrier Envelope gain
-iC_Decay	equ	15h			; Carrier Decay
-iC_Rel		equ	16h			; Carrier Release
-iC_Level	equ	17h			; Carrier Output Level
-iC_AM		equ	18h			; Carrier Amplitude modulation (Trem
-iC_Vib		equ	19h			; Carrier Frequency Vibrato
-iC_KSR		equ	1Ah			; Carrier Key scaling/envelope rate
+iC_KSL		equ	0Fh              ; Carrier Key scaling level
+iC_Multiple	equ	10h              ; Carrier Frequency multiplier
+iPanning	equ	11h              ; Panning (OPL3)
+iC_Attack	equ	12h              ; Carrier Attack
+iC_Sus		equ	13h              ; Carrier Sustain
+iC_EG		equ	14h              ; Carrier Envelope gain
+iC_Decay	equ	15h              ; Carrier Decay
+iC_Rel		equ	16h              ; Carrier Release
+iC_Level	equ	17h              ; Carrier Output Level
+iC_AM		equ	18h              ; Carrier Amplitude modulation (Trem
+iC_Vib		equ	19h              ; Carrier Frequency Vibrato
+iC_KSR		equ	1Ah              ; Carrier Key scaling/envelope rate
 
 ; HERAD Instrument Macros start here
 iX_FBScaleAFT	equ	1Bh			; Feedback Scaling - Aftertouch
