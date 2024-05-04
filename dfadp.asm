@@ -123,35 +123,35 @@ iX_CLevelScaleAFT equ	27h              ; Carrier Output Level Scaling - Aftertou
 	
 		org	100h
 	
-		jmp	DriverInit		; 3B08:0100
+		jmp	DriverInit      ; 3B08:0100
 ; ---------------------------------------------------------------------------
-		jmp	GetSongData		; 3B08:0103 (Starts music playback, music data gets loaded before this is called)
+		jmp	GetSongData     ; 3B08:0103 (Starts music playback, music data gets loaded before this is called)
 ; ---------------------------------------------------------------------------
-		jmp	ShutUp			; 3B08:0106 (ShutUp, kills all music playback with NoteOffs)
+		jmp	ShutUp          ; 3B08:0106 (ShutUp, kills all music playback with NoteOffs)
 ; ---------------------------------------------------------------------------
-		jmp	ChangeSong		; 3B08:0109 (I don't think this gets called)
+		jmp	ChangeSong      ; 3B08:0109 (I don't think this gets called)
 ; ---------------------------------------------------------------------------
-		jmp	StopDriver		; 3B08:010C (Called when game shuts down)
+		jmp	StopDriver      ; 3B08:010C (Called when game shuts down)
 ; ---------------------------------------------------------------------------
-		jmp	SongPlay		; 3B08:010F (This is more like a timer that decreases the byte at 0x11E if the SongFlag at 0x19A is non-zero. The game is constantly spamming this even when music isn't playing)
+		jmp	SongPlay        ; 3B08:010F (This is more like a timer that decreases the byte at 0x11E if the SongFlag at 0x19A is non-zero. The game is constantly spamming this even when music isn't playing)
 ; ---------------------------------------------------------------------------
-		jmp	TimerFF			; 3B08:0112 (Called at the end of initialization)
+		jmp	TimerFF         ; 3B08:0112 (Called at the end of initialization)
 ; ---------------------------------------------------------------------------
 
-SizeOffset	dw 0				;; This is referenced a lot to parse the song file's header (it is always 2)
+SizeOffset	dw 0                    ;; This is referenced a lot to parse the song file's header (it is always 2)
 		
 SongSegment	dw 0
 SongFileSize	dw 0
 SongSegment2	dw 0
-		
+
 SongSpeed	dw 0
-MeasureCount	dw 0	
+MeasureCount	dw 0
 MIDITickCount	dw 0
 SongPlayCount	dw 0
 
 ; ---------------------------------------------------------------------------
 
-EventPointerTable:	
+EventPointerTable:
 
 ; 06CF = NoteOff (80)
 ; 065D = NoteOn (90)
@@ -174,32 +174,32 @@ EventPointerTable:
 ; ---------------------------------------------------------------------------
 
 OPLRegTable:	
-		db 0, 3, 1, 4, 2, 5, 8,	0Bh, 9,	0Ch, 0Ah, 0Dh, 10h, 13h
-		db 11h,	14h, 12h, 15h
+		db	0, 3, 1, 4, 2, 5, 8, 0Bh, 9, 0Ch, 0Ah, 0Dh, 10h, 13h
+		db	11h,	14h, 12h, 15h
 FreqTable:      
-		dw 157h, 16Ch, 181h, 198h, 1B1h, 1CBh, 1E6h, 203h, 222h
-                dw 243h, 266h, 28Ah
+		dw	157h, 16Ch, 181h, 198h, 1B1h, 1CBh, 1E6h, 203h, 222h
+                dw	243h, 266h, 28Ah
 FNumRegisters:
-		dw 9 dup(157h)
+		dw	9 dup(157h)
 
 OPLPortTable:	
-		db 0, 1, 2, 8, 9, 0Ah, 10h, 11h, 12h
+		db	0, 1, 2, 8, 9, 0Ah, 10h, 11h, 12h
 
 FineBendTable:
-		db 3, 4, 5, 0Bh, 0Ch, 0Dh, 13h, 14h, 15h, 13h, 15h, 15h, 17h, 19h, 1Ah, 1Bh, 1Dh, 1Fh, 21h, 23h, 24h, 25h
+		db	3, 4, 5, 0Bh, 0Ch, 0Dh, 13h, 14h, 15h, 13h, 15h, 15h, 17h, 19h, 1Ah, 1Bh, 1Dh, 1Fh, 21h, 23h, 24h, 25h
 CoarseBendTable:
-		db 0, 5, 0Ah, 0Fh, 14h, 0, 6, 0Ch, 12h, 18h
+		db	0, 5, 0Ah, 0Fh, 14h, 0, 6, 0Ch, 12h, 18h
 
-SongFlag	db 0
-ChangeSongFlag	db 0
+SongFlag	db	0
+ChangeSongFlag	db	0
 		
-EEx19C		db 0EEh
-EEx19D		db 0EEh
-EEx19E		db 0EEh
+EEx19C		db	0EEh
+EEx19D		db	0EEh
+EEx19E		db	0EEh
 
-BitTimer	dw 1
+BitTimer	dw	1
 
-unk_1A1		db 90h		;; Possibly a marker to denote the start of the driver internals
+unk_1A1		db	90h             ;; Possibly a marker to denote the start of the driver internals
 
 ; ------------------------ M U S I C  R A M ---------------------------------
 ;; Underscore in front of label name denotes driver internals
