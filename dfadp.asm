@@ -190,8 +190,8 @@ FineBendTable:
 CoarseBendTable:
 		db	0, 5, 0Ah, 0Fh, 14h, 0, 6, 0Ch, 12h, 18h
 
-SongFlag        db	0
-ChangeSongFlag  db	0
+SongFlag        db      0
+ChangeSongFlag  db      0
 		
 EEx19C		db	0EEh
 EEx19D		db	0EEh
@@ -313,10 +313,10 @@ _LoopMidiStartPtr:
 
                 org     2C2h
 
-Terminator	db 0
-HSQ             dw 5348h
-HSQEND          db 51h
-PortNum         dw 220h
+Terminator	db	0
+HSQ             dw	5348h
+HSQEND          db	51h
+PortNum         dw	220h
 
 ; =============== S U B R O U T I N E =======================================
 
