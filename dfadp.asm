@@ -173,9 +173,9 @@ EventPointerTable:
 
 ; ---------------------------------------------------------------------------
 
-OPLRegTable:	
+OPLRegTable:
 		db	0, 3, 1, 4, 2, 5, 8, 0Bh, 9, 0Ch, 0Ah, 0Dh, 10h, 13h
-		db	11h,	14h, 12h, 15h
+		db	11h, 14h, 12h, 15h
 FreqTable:      
 		dw	157h, 16Ch, 181h, 198h, 1B1h, 1CBh, 1E6h, 203h, 222h
                 dw	243h, 266h, 28Ah
@@ -190,8 +190,8 @@ FineBendTable:
 CoarseBendTable:
 		db	0, 5, 0Ah, 0Fh, 14h, 0, 6, 0Ch, 12h, 18h
 
-SongFlag	db	0
-ChangeSongFlag	db	0
+SongFlag        db	0
+ChangeSongFlag  db	0
 		
 EEx19C		db	0EEh
 EEx19D		db	0EEh
