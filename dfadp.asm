@@ -404,7 +404,7 @@ EEE1:
 		sub     ah, bh          ; 0E - F0 = 88
 		neg     ah              ; two's compliment of 88 = 78
 		cmp     ah, bl          ; compare the two 78s
-		jbe     short EEE       ; if AX is the incorrect value, continue, otherwise jump
+		jbe     short EEE2      ; if AX is the incorrect value, continue, otherwise jump
 		mov     ah, bl          ; if AX isn't right, correct it by making it 7800
 
 EEE2:
@@ -466,159 +466,160 @@ StopDriverEnd:
 ; ---------------------------------------------------------------------------
 
 ChangeSong:
-		mov	cs:ChangeSongFlag, 1 ; This byte was left over from the	"CD-Style" playback function from Dune and KGB.	 
-					     ; When this byte was enabled, a new song would play after the current song finished
-					     ; playing or ran out of loop count.  This feature doesn't work in MegaRace, as the
-					     ; songs will just stop playing, except for PAGA, DETRITUS, and LENNY, as those songs
-					     ; will play forever.
-		mov	al, cs:SongFlag
+		mov     cs:ChangeSongFlag, 1 ; This byte was left over from the "CD-Style" playback function from Dune and KGB.
+		                             ; When this byte was enabled, a new song would play after the current song finished
+		                             ; playing or ran out of loop count.  This feature doesn't work in MegaRace, as the
+		                             ; songs will just stop playing, except for PAGA, DETRITUS, and LENNY, as those songs
+		                             ; will play forever.
+		mov     al, cs:SongFlag
 		retf
 ; ---------------------------------------------------------------------------
 ; Temporary RAM used for loading song data
 TempRAM:
-Temp		dw	0		;;3BAh  
-		dw	0		;; combined with Temp to become a 32-bit value	
-Temp2		dw	0		;;3BEh
-Temp3		db	0		;;3C0h
-Temp4		db	0		;;3C1h
-Temp5		dw	0		;;3C2h
+Temp		dw      0                    ;;3BAh
+		dw      0                    ;; combined with Temp to become a 32-bit value
+Temp2		dw      0                    ;;3BEh
+Temp3		db      0                    ;;3C0h
+Temp4		db      0                    ;;3C1h
+Temp5		dw      0                    ;;3C2h
 ; ---------------------------------------------------------------------------
 
 GetSongData:
-		push	ds
-		push	cs
-		pop	ds
-		mov	ds:ChangeSongFlag, al ;	write the low byte of AX to 0x9B
-		mov	ax, es:[si]	; loads	SongSize into AX
-		mov	di, TempRAM
-		mov	[di], si
-		mov	word ptr [di+2], es ; writes SongSegment at 0x2BC
-		mov	[di+4],	ax	; writes SongSize at 0x2BE
-		mov	ax, es:[si+4000h] ; grabs word at 0x4000 in SongFile, which is 0x3379 in NewSan	(part of a note	on...what the hell?)
-		mov	[di+6],	ax	; writes this value at 0x2C0
-		mov	ax, es:[si-8000h] ; okay, this is really weird.	 This is suppose to grab ES:[SI-8000], which should be 3BB6:FFFF8000, however, it grabs	DS:[SI-8000], which is 3B08:FFFF8000.  I think this is happens because of how the segment registers/indexes and	pointers work.
-		mov	[di+8],	ax	; writes this down at 0x2C2 (for NewSan, it's 0x2790)
-		add	si, 2
-		mov	ds:SizeOffset, si	; writes 2 at 0x115
-		mov	ds:SongSegment,	es ; writes SongSegment	at 0x117
-		sub	si, 2
-		add	si, es:[si]	; grab SongSize	word at	SongSegment
-		mov	ds:SongFileSize, si ; writes SongSize at 0x119
-		mov	ds:SongSegment2, es ; writes SongSegment at 0x11B
-		call	ClearSusRel
-		call	InitTrackPtrs
-		mov	al, ds:EEx19E	; grab EE at 0x19E and place in low byte at AX
-		mov	ds:EEx19C, al	; write	EE at 0x19C
-		call	SoundBlaster
-		mov	ds:EEx19D, al	; grab EE from the low byte of AX and write it at 0x19D
-		xor	ax, ax		; zero out AX
-		mov	ds:SongSpeed, ax ; zero	out timer at 0x1D
-		mov	ds:SongPlayCount, ax ; zero out	loop count
-		call	PlayTick
-		mov	al, 80h	; '€'   ; put 80 in the low byte for AX
-		mov	ds:SongFlag, al	; Turn the SongFlag on by placing 80 there
-		pop	ds
+		push    ds
+		push    cs
+		pop     ds
+		mov     ds:ChangeSongFlag, al ; write the low byte of AX to 0x9B
+		mov     ax, es:[si]           ; loads SongSize into AX
+		mov     di, TempRAM
+		mov     [di], si
+		mov     word ptr [di+2], es   ; writes SongSegment at 0x2BC
+		mov     [di+4], ax            ; writes SongSize at 0x2BE
+		mov     ax, es:[si+4000h]     ; grabs word at 0x4000 in SongFile, which is 0x3379 in NewSan (part of a note on...what the hell?)
+		mov     [di+6],	ax            ; writes this value at 0x2C0
+		mov     ax, es:[si-8000h]     ; okay, this is really weird.  This is suppose to grab ES:[SI-8000], which should be 3BB6:FFFF8000, however, it grabs DS:[SI-8000], which is 3B08:FFFF8000.
+		                              ; I think this is happens because of how the segment registers/indexes and pointers work.
+		mov     [di+8], ax            ; writes this down at 0x2C2 (for NewSan, it's 0x2790)
+		add     si, 2
+		mov     ds:SizeOffset, si     ; writes 2 at 0x115
+		mov     ds:SongSegment, es    ; writes SongSegment at 0x117
+		sub     si, 2
+		add     si, es:[si]           ; grab SongSize word at SongSegment
+		mov     ds:SongFileSize, si   ; writes SongSize at 0x119
+		mov     ds:SongSegment2, es   ; writes SongSegment at 0x11B
+		call    ClearSusRel
+		call    InitTrackPtrs
+		mov     al, ds:EEx19E         ; grab EE at 0x19E and place in low byte at AX
+		mov     ds:EEx19C, al         ; write EE at 0x19C
+		call    SoundBlaster
+		mov     ds:EEx19D, al         ; grab EE from the low byte of AX and write it at 0x19D
+		xor     ax, ax                ; zero out AX
+		mov     ds:SongSpeed, ax      ; zero out timer at 0x1D
+		mov     ds:SongPlayCount, ax  ; zero out loop count
+		call    PlayTick
+		mov     al, 80h               ; put 80 in the low byte for AX
+		mov     ds:SongFlag, al       ; Turn the SongFlag on by placing 80 there
+		pop     ds
 		retf
 
 InitTrackPtrs:
-		push	ds
-		push	ds
-		pop	es
-		lds	si, dword ptr ds:SizeOffset ; load 0002 from 0x15	in SI
-		mov	bp, si		; copy 2 from SI to BP
-		mov	di, _MidiTrackStart	; get offset for the start of the MIDI tracks
-		mov	cx, TrackNum	; load 9 into the CX counter
+		push    ds
+		push    ds
+		pop     es
+		lds     si, dword ptr ds:SizeOffset ; load 0002 from 0x15 in SI
+		mov     bp, si                      ; copy 2 from SI to BP
+		mov     di, _MidiTrackStart         ; get offset for the start of the MIDI tracks
+		mov     cx, TrackNum                ; load 9 into the CX counter
 
 GetTrackOffset:
-		lodsw			; looks	in the music file, skips the first two bytes and loads 32 (first MIDI track offset) into AX, increments	SI, repeat 9 times
-		or	ax, ax		; when repeats,	get new	MIDI track offset
-		jz	short InitInstPitch ; repeat 9 times until zero
-		add	ax, bp		; add 2	to get 34 for absolute address
+		lodsw                         ; looks in the music file, skips the first two bytes and loads 32 (first MIDI track offset) into AX, increments SI, repeat 9 times
+		or      ax, ax                ; when repeats, get new MIDI track offset
+		jz      short InitInstPitch   ; repeat 9 times until zero
+		add     ax, bp                ; add 2 to get 34 for absolute address
 
 InitInstPitch:
-		stosw			; place	MIDItrack offset in memory and increment DI so it can get ready	to add the next	offset
-		loop	GetTrackOffset	; adds all the offsets with loop then jump here	to proceed
-		mov	di, _MidiInstOffset ; load Current Instrument offset into DI
-		mov	cl, TrackNum	; place	9 in CX
-		mov	ax, 0FFh	; place	FF in AX
-		rep stosw		; Creates FF for each instrument channel at 0x1EA...it does this by using REP to repeat	the STOSW 9 times (9 in	CX), STOSW increments the DI, so it creates the	bytes in the correct offsets.
-		mov	di, _XSlideDurOffset ; load offset for Pitch Slide Duration Counter in DI
-		mov	cl, TrackNum	; place	9 in CX
-		xor	ax, ax		; when on repeat, get new offset
-		rep stosw		; zeros	out counters
-		pop	ds		; switch back to driver	segment
-		les	si, dword ptr ds:SizeOffset ; load 2 into	SI
+		stosw                         ; place MIDItrack offset in memory and increment DI so it can get ready to add the next offset
+		loop    GetTrackOffset        ; adds all the offsets with loop then jump here to proceed
+		mov     di, _MidiInstOffset   ; load Current Instrument offset into DI
+		mov     cl, TrackNum          ; place 9 in CX
+		mov     ax, 0FFh              ; place FF in AX
+		rep stosw                     ; Creates FF for each instrument channel at 0x1EA...it does this by using REP to repeat the STOSW 9 times (9 in CX), STOSW increments the DI, so it creates the bytes in the correct offsets.
+		mov     di, _XSlideDurOffset  ; load offset for Pitch Slide Duration Counter in DI
+		mov     cl, TrackNum          ; place 9 in CX
+		xor     ax, ax                ; when on repeat, get new offset
+		rep stosw                     ; zeros out counters
+		pop     ds                    ; switch back to driver segment
+		les     si, dword ptr ds:SizeOffset ; load 2 into SI
 
 SongInitStart:
-		mov	ds:MeasureCount, 1 ; Create 1 measure count for	the FourBarCount
-		mov	ds:MIDITickCount, MidiTickValue ; Creates the 96 ticks for the MIDITickCount
-		mov	cx, TrackNum		; place	9 in CX
-		mov	di, _MidiEventDelay	; Enter	in offset for Current Midi Delay Counter
+		mov     ds:MeasureCount, 1    ; Create 1 measure count for the FourBarCount
+		mov     ds:MIDITickCount, MidiTickValue ; Creates the 96 ticks for the MIDITickCount
+		mov     cx, TrackNum          ; place 9 in CX
+		mov     di, _MidiEventDelay   ; Enter in offset for Current Midi Delay Counter
 
 WriteDelay_Pos:
-		mov	si, [di+_MidiTrackStartPos]	; add 24 to 1A2	to get 1C6, then grab the 34 that's at 0x1C6 and store it in SI
-		mov	[di+_MidiTrackPos], si	; Creates the 34 at offset 0x1B4 to make the MIDI Track	Position
-		mov	word ptr [di], 0FFFFh ;	places FFFF inside of DS:[01A2]
-		or	si, si
-		jz	short WriteDelayLoop ; add 2 to	the DI to get the rest of the offsets
-		mov	ax, cx		; places 9 in AX
-		call	GetChMidiDelay	; Creates the first Current Event Midi Tick Counter
-		inc	word ptr [di]	; add 1	to [DI], which will be the MIDI	track delay
-		mov	cx, ax		; places 9 in CX.  This	will count down	as it goes through all 9 tracks
+		mov     si, [di+_MidiTrackStartPos] ; add 24 to 1A2 to get 1C6, then grab the 34 that's at 0x1C6 and store it in SI
+		mov     [di+_MidiTrackPos], si ; Creates the 34 at offset 0x1B4 to make the MIDI Track Position
+		mov     word ptr [di], 0FFFFh ; places FFFF inside of DS:[01A2]
+		or      si, si
+		jz      short WriteDelayLoop  ; add 2 to the DI to get the rest of the offsets
+		mov     ax, cx                ; places 9 in AX
+		call    GetChMidiDelay        ; Creates the first Current Event Midi Tick Counter
+		inc     word ptr [di]         ; add 1 to [DI], which will be the MIDI track delay
+		mov     cx, ax                ; places 9 in CX.  This will count down as it goes through all 9 tracks
 
 WriteDelayLoop:
-		add	di, 2		; add 2	to the DI to get the rest of the offsets
-		loop	WriteDelay_Pos	; create the rest of the MIDI track delays
+		add     di, 2                 ; add 2 to the DI to get the rest of the offsets
+		loop    WriteDelay_Pos        ; create the rest of the MIDI track delays
 		retn
 
 SongPlay:
-		push	ds		; check	if SongFlag is valid
-		mov	ax, cs
-		mov	ds, ax
-		cmp	ds:SongFlag, 0
-		jns	short UpdateBitTimer2	; if SongFlag byte is not signed
-		dec	byte ptr ds:SongSpeed+1	; decrease second byte of timer
-		jns	short UpdateBitTimer ; jump if not signed
-		call	CheckSongSize
-		jnz	short UpdateBitTimer2
-		push	dx
-		push	si
-		push	di
-		push	bp
-		push	es
-		call	PlayTick
-		pop	es
-		pop	bp
-		pop	di
-		pop	si
-		pop	dx
+		push    ds                    ; check if SongFlag is valid
+		mov     ax, cs
+		mov     ds, ax
+		cmp     ds:SongFlag, 0
+		jns     short UpdateBitTimer2   ; if SongFlag byte is not signed
+		dec     byte ptr ds:SongSpeed+1 ; decrease second byte of timer
+		jns     short UpdateBitTimer    ; jump if not signed
+		call    CheckSongSize
+		jnz     short UpdateBitTimer2
+		push    dx
+		push    si
+		push    di
+		push    bp
+		push    es
+		call    PlayTick
+		pop     es
+		pop     bp
+		pop     di
+		pop     si
+		pop     dx
 
 UpdateBitTimer:
-		rol	ds:BitTimer, 1	; rotate bit to	the left by 1
-		jnb	short UpdateBitTimer2	; if bit-shift counter reaches 0001, then jump
-		call	sub_831
+		rol     ds:BitTimer, 1        ; rotate bit to the left by 1
+		jnb     short UpdateBitTimer2 ; if bit-shift counter reaches 0001, then jump
+		call    sub_831
 
 UpdateBitTimer2:
-		mov	al, ds:SongFlag
-		mov	bx, ds:MeasureCount
-		mov	cx, ds:MIDITickCount
-		pop	ds
+		mov     al, ds:SongFlag
+		mov     bx, ds:MeasureCount
+		mov     cx, ds:MIDITickCount
+		pop     ds
 		retf
 		
 ; =============== S U B	R O U T	I N E =======================================
 
 
-CheckSongSize:	push	si
-		push	es
-		les	si, dword ptr ds:Temp
-		mov	ax, es:[si]	; move SongSize
-		cmp	word ptr ds:Temp2, ax ; SongSize2 is 0x3BE in HERAD	Driver.	Compare	if SongSize is the same	with AX
-		jnz	short CheckSongSizeEnd
-		mov	ax, es:[si+4000h]
-		cmp	word ptr ds:Temp3, ax
-		jnz	short CheckSongSizeEnd
-		mov	ax, es:[si-8000h]
-		cmp	word ptr ds:Temp5, ax
+CheckSongSize:	push    si
+		push    es
+		les     si, dword ptr ds:Temp
+		mov     ax, es:[si]           ; move SongSize
+		cmp     word ptr ds:Temp2, ax ; SongSize2 is 0x3BE in HERAD Driver. Compare if SongSize is the same with AX
+		jnz     short CheckSongSizeEnd
+		mov     ax, es:[si+4000h]
+		cmp     word ptr ds:Temp3, ax
+		jnz     short CheckSongSizeEnd
+		mov     ax, es:[si-8000h]
+		cmp     word ptr ds:Temp5, ax
 
 CheckSongSizeEnd:
 		pop	es
@@ -627,124 +628,124 @@ CheckSongSizeEnd:
 
 
 PlayTick:
-		les	bx, dword ptr ds:SizeOffset ; load 0002 into BX
-		mov	ax, es:[bx+sSpeed]	; add 30 to 2 to get 32, which is the offset of	the song speed in the music file!  Place that tempo into AX
-		add	ds:SongSpeed, ax ; add the tempo to the	value at 0x1D
-		mov	di, _MidiEventDelay	; place	the offset for Current Midi Delay Counter into DI
-		call	LoopCheck
-		mov	cx, TrackNum		; place	9 in CX
+		les     bx, dword ptr ds:SizeOffset ; load 0002 into BX
+		mov     ax, es:[bx+sSpeed]    ; add 30 to 2 to get 32, which is the offset of the song speed in the music file!  Place that tempo into AX
+		add     ds:SongSpeed, ax      ; add the tempo to the value at 0x1D
+		mov     di, _MidiEventDelay   ; place the offset for Current Midi Delay Counter into DI
+		call    LoopCheck
+		mov     cx, TrackNum          ; place 9 in CX
 
 PlayChanLoop:
-		dec	word ptr [di]	; decrease tick	count
-		jnz	short UpdatePtchSlide
+		dec     word ptr [di]         ; decrease tick count
+		jnz     short UpdatePtchSlide
 
 GetMidiEvent:
-		mov	si, [di+_MidiTrackPos]	; get offset for MIDI Track Position and place position	in SI
-		or	si, si
-		jz	short DecreaseTick
-		push	cx
-		push	di
-		lods	word ptr es:[si] ; grab	MIDI Event data, place it in AX	and increment SI by 2
-		mov	dx, di		; grab offset from DI and place	in DX
-		sub	dx, _MidiEventDelay	; subtract 1A2 from DX
-		shr	dx, 1		; shift	right DX by 1
-		mov	bx, ax		; copy delay byte from AX into BX
-		and	bx, 70h		; AND operation	on BX with 70
-		shr	bx, 1		; shift	right BX by 1
-		shr	bx, 1		; shift	right BX by 1
-		shr	bx, 1		; shift	right BX by 1
-		call	ds:EventPointerTable[bx]	; depending on BX, grab	value from MIDI	Event Subroutine Lookup	Table and jump to offset.
-		pop	di
-		pop	cx
-		cmp	word ptr [di], 0 ; compare 0x1A2 with zero
-		jz	short GetMidiEvent ; if	zero, go back up to 3FE, otherwise continue to finish up decreasing the	tick.
+		mov     si, [di+_MidiTrackPos] ; get offset for MIDI Track Position and place position in SI
+		or      si, si
+		jz      short DecreaseTick
+		push    cx
+		push    di
+		lods    word ptr es:[si]      ; grab MIDI Event data, place it in AX and increment SI by 2
+		mov     dx, di                ; grab offset from DI and place in DX
+		sub     dx, _MidiEventDelay   ; subtract 1A2 from DX
+		shr     dx, 1                 ; shift right DX by 1
+		mov     bx, ax                ; copy delay byte from AX into BX
+		and     bx, 70h               ; AND operation on BX with 70
+		shr     bx, 1                 ; shift right BX by 1
+		shr     bx, 1                 ; shift right BX by 1
+		shr     bx, 1                 ; shift right BX by 1
+		call    ds:EventPointerTable[bx] ; depending on BX, grab value from MIDI Event Subroutine Lookup Table and jump to offset.
+		pop     di
+		pop     cx
+		cmp     word ptr [di], 0      ; compare 0x1A2 with zero
+		jz      short GetMidiEvent    ; if zero, go back up to 3FE, otherwise continue to finish up decreasing the tick.
 
 DecreaseTick:
-		add	di, 2		; this increases DI by 2 so that the driver will continue on to	the next channel
-		loop	PlayChanLoop	; keep looping until CX	runs out
-		dec	byte ptr ds:MIDITickCount ; decrease MIDI tick!
-		jnz	short DecreaseTickEnd ;	if not zero, then jump to the end of the subroutine.
-		mov	byte ptr ds:MIDITickCount, MidiTickValue ; '`' ; when ticks reach zero, refresh 4Bar counter to 60 (96 midi ticks)
-		inc	ds:MeasureCount	; increment the	4Bar count!
+		add     di, 2                 ; this increases DI by 2 so that the driver will continue on to the next channel
+		loop    PlayChanLoop          ; keep looping until CX runs out
+		dec     byte ptr ds:MIDITickCount ; decrease MIDI tick!
+		jnz     short DecreaseTickEnd ; if not zero, then jump to the end of the subroutine.
+		mov     byte ptr ds:MIDITickCount, MidiTickValue ; when ticks reach zero, refresh 4Bar counter to 60 (96 midi ticks)
+		inc     ds:MeasureCount	      ; increment the 4 Bar count!
 
 DecreaseTickEnd:
 		retn
 ; ---------------------------------------------------------------------------
 
 UpdatePtchSlide:
-		cmp	byte ptr [di+_XSlideDurCount], 0 ; compare low byte	at Pitch Slide Duration	Counter	offset with zero.  Little endian means that our	counter	is the low byte.
-		jz	short DecreaseTick ; if	zero, just decrease the	tick.  if not zero, then continue
-		mov	si, [di+_MidiTrackPos]	; grab MIDI delay offset from 0xB4 and copy to SI
-		or	si, si
-		jz	short DecreaseTick
-		push	cx
-		push	di
-		dec	byte ptr [di+_XSlideDurCount] ; decrease pitch slide counter
-		mov	ax, [di+_XSlideCounter]	; grab data at Pitch Slide Counter offset and copy to AX
-		add	al, ah		; add AX's high byte (Pitch Slide Range) to AX's low byte (Pitch Slide Counter)
-		mov	[di+_XSlideCounter], al	; write	the new	pitch slide count!
-		mov	dx, di		; write	DI to DX
-		sub	dx, _MidiEventDelay	; subtract 1A2 from DX
-		shr	dx, 1		; shift	bits to	the right by 1
-		mov	cl, [di+_MidiCurPitch]	; grab the data	at 0xEB	(MIDI Pitch byte) and write to CX's low byte
-		and	cx, 7Fh		; perform AND with 7F and CX
-		jz	short UpdatePtchTick	; if zero, jump	to finish decreasing the tick, otherwise continue.
-		mov	ds:Terminator, 0FFh ; write FF at 0x1C2	(terminator)
-		call	BendSetup	; go to
-		mov	ds:Terminator, 0 ; zero	out terminator
+		cmp     byte ptr [di+_XSlideDurCount], 0 ; compare low byte at Pitch Slide Duration Counter offset with zero.  Little endian means that our counter is the low byte.
+		jz      short DecreaseTick ; if	zero, just decrease the	tick.  if not zero, then continue
+		mov     si, [di+_MidiTrackPos]	; grab MIDI delay offset from 0xB4 and copy to SI
+		or      si, si
+		jz      short DecreaseTick
+		push    cx
+		push    di
+		dec     byte ptr [di+_XSlideDurCount] ; decrease pitch slide counter
+		mov     ax, [di+_XSlideCounter] ; grab data at Pitch Slide Counter offset and copy to AX
+		add     al, ah                ; add AX's high byte (Pitch Slide Range) to AX's low byte (Pitch Slide Counter)
+		mov     [di+_XSlideCounter], al ; write the new pitch slide count!
+		mov     dx, di                ; write DI to DX
+		sub     dx, _MidiEventDelay   ; subtract 1A2 from DX
+		shr     dx, 1                 ; shift bits to the right by 1
+		mov     cl, [di+_MidiCurPitch] ; grab the data at 0xEB (MIDI Pitch byte) and write to CX's low byte
+		and     cx, 7Fh               ; perform AND with 7F and CX
+		jz      short UpdatePtchTick  ; if zero, jump to finish decreasing the tick, otherwise continue.
+		mov     ds:Terminator, 0FFh   ; write FF at 0x1C2 (terminator)
+		call    BendSetup             ; go to
+		mov     ds:Terminator, 0      ; zero out terminator
 
 UpdatePtchTick:
-		pop	di
-		pop	cx
-		jmp	short DecreaseTick
+		pop     di
+		pop     cx
+		jmp     short DecreaseTick
 
 
 ; =============== S U B	R O U T	I N E =======================================
 
 
 LoopCheck:
-		cmp	ds:SongPlayCount, 0 ; compare the loop count with zero
-		jnz	short NextLoop
-		mov	ax, es:[bx+sLoopStart]	; add 2A to 2 to get 2C, so 3BB6:002C.	This is	our loop start measure!	 Throw that into AX
-		cmp	ax, ds:MeasureCount ; compare the song's loop start measure with the current measure count
-		jnz	short LoopCheckEnd ; jump to short if not equal
+		cmp     ds:SongPlayCount, 0   ; compare the loop count with zero
+		jnz     short NextLoop
+		mov     ax, es:[bx+sLoopStart] ; add 2A to 2 to get 2C, so 3BB6:002C. This is our loop start measure!  Throw that into AX
+		cmp     ax, ds:MeasureCount   ; compare the song's loop start measure with the current measure count
+		jnz     short LoopCheckEnd    ; jump to short if not equal
 
-GrabLoopPtrs:				; compare the current MIDI tick	count with 60
-		cmp	ds:MIDITickCount, MidiTickValue 
-		jnz	short LoopCheckEnd ; if it's not 60h, skip this
-		push	di
-		push	es
-		mov	si, di		; grab DI (1A2)	and put	it in SI
-		add	di, _LoopMidiEventDelay  ; add D8 to 1A2 to get 27A (Loop MIDI Delay Values)
-		push	ds
-		pop	es
-		mov	cx, AllTrackPtrs		; place	12 into	CX
-		rep movsw		; write	all the	current	MIDI delay values into the Loop	MIDI Delay Value offsets!
-		pop	es
-		pop	di
-		mov	ax, es:[bx+sLoopCount]	; grab loop count from music file!
-		dec	ax		; decrease loop	count!
-		mov	ds:SongPlayCount, ax ; write loop count	to memory!
+GrabLoopPtrs:                                 ; compare the current MIDI tick count with 60
+		cmp     ds:MIDITickCount, MidiTickValue 
+		jnz     short LoopCheckEnd    ; if it's not 60h, skip this
+		push    di
+		push    es
+		mov     si, di                ; grab DI (1A2) and put it in SI
+		add     di, _LoopMidiEventDelay ; add D8 to 1A2 to get 27A (Loop MIDI Delay Values)
+		push    ds
+		pop     es
+		mov     cx, AllTrackPtrs      ; place 12 into CX
+		rep movsw                     ; write all the current MIDI delay values into the Loop MIDI Delay Value offsets!
+		pop     es
+		pop     di
+		mov     ax, es:[bx+sLoopCount] ; grab loop count from music file!
+		dec     ax                    ; decrease loop count!
+		mov     ds:SongPlayCount, ax  ; write loop count to memory!
 
 LoopCheckEnd:
 		retn
 
 NextLoop:
-		mov	ax, es:[bx+sLoopEnd]	; grab loop ending measure
-		cmp	ax, ds:MeasureCount ; compare it with the current measure counter
-		jnz	short LoopCheckEnd ; if they don't match, then exit
-		dec	ds:SongPlayCount
-		push	di
-		push	es
-		lea	si, [di+_LoopMidiEventDelay]
-		push	ds
-		pop	es
-		mov	cx, AllTrackPtrs
+		mov     ax, es:[bx+sLoopEnd]  ; grab loop ending measure
+		cmp     ax, ds:MeasureCount   ; compare it with the current measure counter
+		jnz     short LoopCheckEnd    ; if they don't match, then exit
+		dec     ds:SongPlayCount
+		push    di
+		push    es
+		lea     si, [di+_LoopMidiEventDelay]
+		push    ds
+		pop     es
+		mov     cx, AllTrackPtrs
 		rep movsw
-		pop	es
-		pop	di
-		mov	ax, es:[bx+sLoopStart]
-		mov	ds:MeasureCount, ax
+		pop     es
+		pop     di
+		mov     ax, es:[bx+sLoopStart]
+		mov     ds:MeasureCount, ax
 
 
 NextLoopEnd:
@@ -754,7 +755,7 @@ NextLoopEnd:
 ; START	OF FUNCTION CHUNK FOR WriteInstrument
 
 GetDrumMap:
-		mov	[di+_MidiDrumMapPtr], si	; write	drummap	instrument offset to 0xD8!
+		mov     [di+_MidiDrumMapPtr], si ; write drummap instrument offset to 0xD8!
 		retn
 ; END OF FUNCTION CHUNK	FOR WriteInstrument
 
@@ -762,129 +763,129 @@ GetDrumMap:
 
 
 InstChange_C0:
-		mov	word ptr [di+_MidiDrumMapPtr], 0 ; zeros out drum instrument offsets when instrument change	occurs
-		call	GetChMidiDelay
+		mov     word ptr [di+_MidiDrumMapPtr], 0 ; zeros out drum instrument offsets when instrument change occurs
+		call    GetChMidiDelay
 
 
 ; =============== S U B	R O U T	I N E =======================================
 
 
 WriteInstrument:
-		cmp	[di+_MidiCurInst], ah	; compare the high byte	of AX with 1EA
-		jz	short NextLoopEnd ; jump	if zero
-		mov	[di+_MidiCurInst], ah	; write	instrument number to memory!
-		mov	al, InstSize	; '('   ; load 28 into low byte of AX
-		mul	ah		; multiply high	byte of	AX, which is zero, so the answer is zero
-		les	si, dword ptr ds:SongFileSize ;	load SongSize in SI
-		add	si, ax		; add AX to SI
-		mov	al, es:[si]	; grab low byte	at SongSegment:SongSize
-		cmp	al, iDrumMode	; compare low byte if it's an FF (Drummap)
-		jz	short GetDrumMap ; If it is, get drum map!
-		mov	ax, es:[si+iX_SlideTrans] ; grab instrument's Pitch Slide Range Flag / Transpose bytes
-		mov	[di+_XSlideRangeFlag], ax	; write	them to	memory!
-		mov	ah, es:[si+iC_Level]	; grab the Carrier Output Level	and place it as	high byte in AX
-		mov	al, es:[si+iM_Level]	; grab the Modulator Output Level and copy it as the low byte for AX
-		mov	bh, es:[si+iM_KSL]	; grab the Modulator Key scaling level,	copy into high byte for	BX
-		mov	bl, es:[si+iC_KSL]	; grab the Carrier Key scaling level, copy into	low byte for BX
-		and	bx, 303h
-		ror	bx, 1
-		ror	bx, 1
-		or	ax, bx
-		mov	[di+_FMOutputLevel], ax	; write	Modulator Output Level (first byte) / Carrier Output Level (Second byte) into memory!
-		mov	ax, es:[si+iX_MLevelScale] ; grab the Modulator and Carrier Output Level Scaling
-		mov	[di+_FMOutputScaling], ax	; write	scaling	bytes to memory	at 0x132!
-		mov	ah, es:[si+iFeedback]	; grab feedback	and place it in	high byte for AX
-		mov	bl, es:[si+iPanning]	; grab panning byte, put it in low byte	for BX
-		shl	bl, 1
-		shl	bl, 1
-		shl	bl, 1
-		or	ah, bl		; grab new panning byte	and put	it in high byte	in AX
-		mov	al, es:[si+iConnector]	; grab Connector and place it in low byte for AX
-		not	al
-		ror	al, 1
-		shl	ax, 1
-		mov	al, es:[si+iX_FBScaleVEL] ; grab Feedback	Scaling	- Velocity byte, place it in low byte for AX
-		mov	[di+_FMFeedbackRegister], ax	; write	Panning/Feedback/Connector Register (first byte) / Feedback Scaling (second byte) at 0x168
-		mov	ax, es:[si+iX_SlideDurRange]	; grab Pitch Slide Duration / Pitch Slide Range, throw into AX
-		mov	[di+_XSlideRange], ah	; grab Pitch Slide Range and place it at 0x121
-		mov	ah, al		; change Pitch Slide Duration byte
-		xor	al, al		; zero out low byte
-		mov	[di+_XSlideDurCount], ax	; write	Pitch Slide Duration at	0x10E
-		push	ds
-		mov	ax, es		; place	SongSegment in AX
-		mov	ds, ax		; place	SongSegment in DS
-		add	si, 2		; add 2	to SongSize
-		call	LoadInstrument
-		pop	ds
+		cmp     [di+_MidiCurInst], ah ; compare the high byte of AX with 1EA
+		jz      short NextLoopEnd     ; jump if zero
+		mov     [di+_MidiCurInst], ah ; write instrument number to memory!
+		mov     al, InstSize          ; load 28 into low byte of AX
+		mul     ah                    ; multiply high byte of AX, which is zero, so the answer is zero
+		les     si, dword ptr ds:SongFileSize ;	load SongSize in SI
+		add     si, ax                ; add AX to SI
+		mov     al, es:[si]           ; grab low byte at SongSegment:SongSize
+		cmp     al, iDrumMode         ; compare low byte if it's an FF (Drummap)
+		jz      short GetDrumMap      ; If it is, get drum map!
+		mov     ax, es:[si+iX_SlideTrans] ; grab instrument's Pitch Slide Range Flag / Transpose bytes
+		mov     [di+_XSlideRangeFlag], ax ; write them to memory!
+		mov     ah, es:[si+iC_Level]  ; grab the Carrier Output Level and place it as high byte in AX
+		mov     al, es:[si+iM_Level]  ; grab the Modulator Output Level and copy it as the low byte for AX
+		mov     bh, es:[si+iM_KSL]    ; grab the Modulator Key scaling level, copy into high byte for BX
+		mov     bl, es:[si+iC_KSL]    ; grab the Carrier Key scaling level, copy into low byte for BX
+		and     bx, 303h
+		ror     bx, 1
+		ror     bx, 1
+		or      ax, bx
+		mov     [di+_FMOutputLevel], ax	; write	Modulator Output Level (first byte) / Carrier Output Level (Second byte) into memory!
+		mov     ax, es:[si+iX_MLevelScale] ; grab the Modulator and Carrier Output Level Scaling
+		mov     [di+_FMOutputScaling], ax ; write scaling bytes to memory at 0x132!
+		mov     ah, es:[si+iFeedback] ; grab feedback and place it in high byte for AX
+		mov     bl, es:[si+iPanning]  ; grab panning byte, put it in low byte for BX
+		shl     bl, 1
+		shl     bl, 1
+		shl     bl, 1
+		or      ah, bl                ; grab new panning byte and put it in high byte in AX
+		mov     al, es:[si+iConnector] ; grab Connector and place it in low byte for AX
+		not     al
+		ror     al, 1
+		shl     ax, 1
+		mov     al, es:[si+iX_FBScaleVEL] ; grab Feedback Scaling - Velocity byte, place it in low byte for AX
+		mov     [di+_FMFeedbackRegister], ax ; write Panning/Feedback/Connector Register (first byte) / Feedback Scaling (second byte) at 0x168
+		mov     ax, es:[si+iX_SlideDurRange] ; grab Pitch Slide Duration / Pitch Slide Range, throw into AX
+		mov     [di+_XSlideRange], ah ; grab Pitch Slide Range and place it at 0x121
+		mov     ah, al                ; change Pitch Slide Duration byte
+		xor     al, al                ; zero out low byte
+		mov     [di+_XSlideDurCount], ax ; write Pitch Slide Duration at 0x10E
+		push    ds
+		mov     ax, es                ; place SongSegment in AX
+		mov     ds, ax                ; place SongSegment in DS
+		add     si, 2                 ; add 2 to SongSize
+		call    LoadInstrument
+		pop     ds
 		retn
 
 ; =============== S U B	R O U T	I N E =======================================
 
 
 NoteOn_90:
-		lods	byte ptr es:[si] ; get MIDI Pitch
-		call	GetChMidiDelay	; write	the MIDI delay and track position counts
-		mov	si, [di+_MidiDrumMapPtr]	; get drummap instrument offset	at 0xD8
-		or	si, si
-		jz	short Transpose	; if there's no drummap, jump to 58B
-		push	ax
-		push	dx
-		push	si
-		push	di
-		push	es
-		mov	es, cs:SongSegment2 ; grab SongSegment and put it in ES
-		mov	al, ah		; grab MIDI pitch and put it in	AX's low byte
-		sub	al, es:[si+2]	; grab the 0x18	transpose byte from the	drum keymap instrument and subtract it from the	MIDI pitch at AX's low byte
-		xor	ah, ah		; zero out the MIDI pitch at AX's high byte
-		;sub	ax, 14h		; subtract 0x14	from AX's value
+		lods    byte ptr es:[si]      ; get MIDI Pitch
+		call    GetChMidiDelay        ; write the MIDI delay and track position counts
+		mov     si, [di+_MidiDrumMapPtr] ; get drummap instrument offset at 0xD8
+		or      si, si
+		jz      short Transpose       ; if there's no drummap, jump to 58B
+		push    ax
+		push    dx
+		push    si
+		push    di
+		push    es
+		mov     es, cs:SongSegment2   ; grab SongSegment and put it in ES
+		mov     al, ah                ; grab MIDI pitch and put it in AX's low byte
+		sub     al, es:[si+2]         ; grab the 0x18 transpose byte from the drum keymap instrument and subtract it from the MIDI pitch at AX's low byte
+		xor     ah, ah                ; zero out the MIDI pitch at AX's high byte
+		;sub    ax, 14h               ; subtract 0x14 from AX's value
 		;;;;;;;;;;;;;;;;;;;;;;
-		db	2Dh
-		dw	14h
+		db      2Dh
+		dw      14h
 		;;;;;;;;;;;;;;;;;;;;;
-		add	si, ax		; add the value	from AX	into SI, which is the drum keymap instrument offset.  This will	take us	to the instrument number inside	the keymap array.
-		mov	ah, es:[si]	; grab the instrument byte in the keymap array and place it in AX's high byte
-		call	WriteInstrument
-		pop	es
-		pop	di
-		pop	si
-		pop	dx
-		pop	ax
+		add     si, ax	              ; add the value from AX into SI, which is the drum keymap instrument offset.  This will take us to the instrument number inside the keymap array.
+		mov     ah, es:[si]           ; grab the instrument byte in the keymap array and place it in AX's high byte
+		call    WriteInstrument
+		pop     es
+		pop     di
+		pop     si
+		pop     dx
+		pop     ax
 
 Transpose:
-		mov	bh, [di+_XRootNoteTrans]	; grab transpose byte and place	in the high byte of BX
-		mov	bl, bh		; copy transpose value to low byte of BX
-		sub	bh, 31h	; '1'   ; subtract 31 from the transpose value
-		cmp	bh, 60h	; '`'   ; compare the transpose value at BX's high byte to 60.  The result will change the CF flag.
-		jnb	short WriteTranspose ; if transpose value is less than 60 (CF flag is 1), DON'T jump
-		mov	ah, bh		; copy the subtracted transpose	byte to	replace	the MIDI byte at AX's high byte
-		xor	bl, bl		; zero out the original	transpose value
-		add	ah, 18h		; add 18 to the	subtracted transpose byte
+		mov     bh, [di+_XRootNoteTrans] ; grab transpose byte and place in the high byte of BX
+		mov     bl, bh                ; copy transpose value to low byte of BX
+		sub     bh, 31h               ; subtract 31 from the transpose value
+		cmp     bh, 60h               ; compare the transpose value at BX's high byte to 60.  The result will change the CF flag.
+		jnb     short WriteTranspose  ; if transpose value is less than 60 (CF flag is 1), DON'T jump
+		mov     ah, bh                ; copy the subtracted transpose byte to replace the MIDI byte at AX's high byte
+		xor     bl, bl                ; zero out the original transpose value
+		add     ah, 18h               ; add 18 to the subtracted transpose byte
 
 WriteTranspose:
-		add	ah, bl		; add BX's low byte to AX's high byte.  This should change the MIDI pitch to the new transposed pitch.
-		push	ax		; place	AX's value in the stack
-		call	sub_632
-		cmp	byte ptr [di+_MidiCurPitch], 0 ; compare MIDI pitch with zero
-		jle	short WriteMidiPitch ; jump if less or equal
-		test	byte ptr [di+0FDh], 2
-		jnz	short WriteMidiPitch
-		xor	ax, ax
-		call	NoteWrite
+		add     ah, bl                ; add BX's low byte to AX's high byte.  This should change the MIDI pitch to the new transposed pitch.
+		push    ax                    ; place AX's value in the stack
+		call    sub_632
+		cmp     byte ptr [di+_MidiCurPitch], 0 ; compare MIDI pitch with zero
+		jle     short WriteMidiPitch  ; jump if less or equal
+		test    byte ptr [di+0FDh], 2
+		jnz     short WriteMidiPitch
+		xor     ax, ax
+		call    NoteWrite
 
 WriteMidiPitch:
-		pop	ax		; place	MIDI pitch and velocity	back in	AX
-		mov	al, ah		; copy pitch byte to AX's low byte
-		xor	ah, ah		; zero out AX's high byte
-		mov	[di+_MidiCurPitch], al	; write	the MIDI pitch!
-		;sub	ax, 48h	        ; AX - 48 = value
+		pop     ax		; place	MIDI pitch and velocity	back in	AX
+		mov     al, ah		; copy pitch byte to AX's low byte
+		xor     ah, ah		; zero out AX's high byte
+		mov     [di+_MidiCurPitch], al	; write	the MIDI pitch!
+		;sub    ax, 48h	        ; AX - 48 = value
 		;;;;;;;;;;;;;;;;;;;;;;;;
-		db	2Dh
-		dw	48h
+		db      2Dh
+		dw      48h
 		;;;;;;;;;;;;;;;;;;;;;;;;
-		mov	cl, [di+_XSlideDuration]	; take the Pitch Slide Duration	byte and place it in CX's low byte
-		mov	[di+_XSlideDurCount], cl	; take the Pitch Slide Duration	value in CX and	place it at the	Pitch Slide Duration Counter offset
-		mov	byte ptr [di+_XSlideCounter], SlideCenter ; '@' ; resets the pitch slide by writing 40 at 0x10E
-		jmp	loc_95C		; jump to 95C
+		mov     cl, [di+_XSlideDuration] ; take the Pitch Slide Duration byte and place it in CX's low byte
+		mov     [di+_XSlideDurCount], cl ; take the Pitch Slide Duration value in CX and place it at the Pitch Slide Duration Counter offset
+		mov     byte ptr [di+_XSlideCounter], SlideCenter ; resets the pitch slide by writing 40 at 0x10E
+		jmp     loc_95C         ; jump to 95C
 
 
 ; =============== S U B	R O U T	I N E =======================================
