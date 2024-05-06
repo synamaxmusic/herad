@@ -119,7 +119,9 @@ iX_CLevelScaleAFT equ	27h              ; Carrier Output Level Scaling - Aftertou
 
 ; ---------------------------------------------------------------------------
 ;; "DFADP.HSQ" HERAD driver starts at address 0x100 and is usually loaded
-;; into memory at 3B08:0100
+;; into memory at 406B:0100.  Music data is found at 4119:0000
+;;
+;; For "DFADL.HSQ", the music driver is located at address 3B08:0100, music data at 3BB6:0000
 	
 		org	100h
 	
@@ -329,7 +331,7 @@ LoadFileName:
                 lods    word ptr es:[si] ; Load the string word at 0FD9:418A.  The value should be 4AFD
                 ;add     ax,0x0002       ; Add 2 to 4AFD, which gives us 4AFF
 		;;;;;;;;;;;;;;;
-		db	05h		 ;; UASM doesn't use the 05 opcode for ADD.  After several tries,
+		db      05h		 ;; UASM doesn't use the 05 opcode for ADD.  After several tries,
 		dw      0002h		 ;; I'm left with no choice but to put this in to match up with the original HERAD driver
 		;;;;;;;;;;;;;;;
                 mov     di, ax           ; 0FD9:4AFF is the offset for the string "NEWSAN.HSQ"
@@ -357,16 +359,16 @@ DriverInit:
 		mov	word ptr cs:PortNum, ax	; grab port number 0220	from [02C6]
 
 OPLStartUp:
-		call	GrabHSQ
-		mov	ax, 2001h	; Enable Waveform Select at OPL	register 01
-		call	ChipWrite	; Write	to OPL2
-		mov	ax, 0BDh ; '½'  ; Disable Percussion Mode
-		call	ChipWrite	; Write	to OPL2
-		mov	ax, 4008h	; Enable NOTE-SEL at OPL register 08
-		call	ChipWrite	; Write	to OPL2
-		push	cs
-		call	near ptr ShutUp
-		mov	bx, 0F00h
+		call    GrabHSQ
+		mov     ax, 2001h       ; Enable Waveform Select at OPL register 01
+		call    ChipWrite       ; Write to OPL2
+		mov     ax, 0BDh        ; Disable Percussion Mode
+		call    ChipWrite       ; Write to OPL2
+		mov     ax, 4008h       ; Enable NOTE-SEL at OPL register 08
+		call    ChipWrite       ; Write to OPL2
+		push    cs
+		call    near ptr ShutUp
+		mov     bx, 0F00h
 		retf
 		
 
@@ -374,90 +376,90 @@ OPLStartUp:
 
 
 ShutUp:		
-		pushf			; clear	eflags
-		cli			; clear	IF flag	in EFLAGS
-		call	KeyOffAll
-		xor	ax, ax		; clear	AX
-		mov	cs:SongFlag, al	; write	zero to	SongFlag
+		pushf                   ; clear eflags
+		cli                     ; clear IF flag in EFLAGS
+		call    KeyOffAll
+		xor     ax, ax          ; clear AX
+		mov     cs:SongFlag, al ; write zero to SongFlag
 		popf
-		retf			; And the driver has stopped!
+		retf                    ; And the driver has stopped!
 
-CreateEEE:	
-		push	bx
-		push	dx
-		shr	al, 1		; The value in AX before this starts is	78E6
-		shr	al, 1
-		shr	al, 1
-		mov	dx, ax		; move 781C to DX
-		mov	bx, 0F078h	; place	F078 in	BX
-		cmp	ah, bl		; compare the low byte of BX with the high byte	of AX.
-		jbe	short EEE1
-		mov	ah, bl
+CreateEEE:                              ; This routine is exclusive to the "DFADP" Sound Blaster HERAD driver
+		push    bx
+		push    dx
+		shr     al, 1           ; The value in AX before this starts is	78E6
+		shr     al, 1
+		shr     al, 1
+		mov     dx, ax          ; move 781C to DX
+		mov     bx, 0F078h      ; place F078 in BX
+		cmp     ah, bl          ; compare the low byte of BX with the high byte of AX.
+		jbe     short EEE1
+		mov     ah, bl
 
 EEE1:
-		xor	al, al		; zero out AX's low byte
-		div	bh		; divide AX by BX's high byte.  The answer should be 80
-		mul	dl		; AX (80) x DL (1C) = E0
-		xchg	ah, dh		; DX:781C and AX:0E00 now become AX:0E1C and DX:7800
-		sub	ah, bh		; 0E - F0 = 88
-		neg	ah		; two's compliment of 88 = 78
-		cmp	ah, bl		; compare the two 78s
-		jbe	short EEE2	; if AX	is the incorrect value,	continue, otherwise jump
-		mov	ah, bl		; if AX	isn't right, correct it by making it 7800
+		xor     al, al          ; zero out AX's low byte
+		div     bh              ; divide AX by BX's high byte.  The answer should be 80
+		mul     dl              ; AX (80) x DL (1C) = E0
+		xchg    ah, dh          ; DX:781C and AX:0E00 now become AX:0E1C and DX:7800
+		sub     ah, bh          ; 0E - F0 = 88
+		neg     ah              ; two's compliment of 88 = 78
+		cmp     ah, bl          ; compare the two 78s
+		jbe     short EEE       ; if AX is the incorrect value, continue, otherwise jump
+		mov     ah, bl          ; if AX isn't right, correct it by making it 7800
 
 EEE2:
-		xor	al, al		; zero out AX's low byte (it was already zero though)
-		div	bh		; divide 7800 with F0 =	80
-		mul	dl		; 80 x 1C = E00
-		shr	ax, 1
-		shr	ax, 1
-		shr	ax, 1
-		shr	ax, 1		; now AX is E0
-		mov	ah, dh		; AX is	now EE0
-		and	ax, 0FF0h
-		or	al, ah		; AX is	now EEE
-		pop	dx
-		pop	bx
+		xor     al, al          ; zero out AX's low byte (it was already zero though)
+		div     bh              ; divide 7800 with F0 = 80
+		mul     dl              ; 80 x 1C = E00
+		shr     ax, 1
+		shr     ax, 1
+		shr     ax, 1
+		shr     ax, 1           ; now AX is E0
+		mov     ah, dh          ; AX is now EE0
+		and     ax, 0FF0h
+		or      al, ah          ; AX is now EEE
+		pop     dx
+		pop     bx
 		retn
 		
 TimerFF:
-		call	CreateEEE
-		mov	cs:EEx19E, al	; write	EE at 0x9E
-		mov	cs:EEx19D, al	; write	EE at 0x9D
-		mov	cs:BitTimer, 0FFFFh ; write FFFF at 0x9F
+		call    CreateEEE
+		mov     cs:EEx19E, al       ; write EE at 0x9E
+		mov     cs:EEx19D, al       ; write EE at 0x9D
+		mov     cs:BitTimer, 0FFFFh ; write FFFF at 0x9F
 		retf
 		
 StopDriver:
-		push	ax
-		mov	ax, bx
-		call	CreateEEE
-		mov	cs:EEx19D, al	; Zero out that	middle EE
-		pop	ax		; value	is 12C...don't know what this is
-		mov	bx, 0FFFFh	; BX = FFFF
-		;cmp	ax, 60h	; '`'   ; compare with 60
+		push    ax
+		mov     ax, bx
+		call    CreateEEE
+		mov     cs:EEx19D, al   ; Zero out that middle EE
+		pop     ax              ; value is 12C...don't know what this is
+		mov     bx, 0FFFFh      ; BX = FFFF
+		;cmp    ax, 60h         ; compare with 60
 		;;
-		db	3Dh
-		dw	60h
+		db      3Dh
+		dw      60h
 		;;
-		jb	short StopSongFlag	; jump if below
-		mov	bx, 0AAAAh
-		cmp	ax, 0C0h ; 'À'
-		jb	short StopSongFlag
-		mov	bx, 8888h
-		cmp	ax, 180h
-		jb	short StopSongFlag
-		mov	bx, 8080h
-		cmp	ax, 300h
-		jb	short StopSongFlag
-		xor	bl, bl
+		jb      short StopSongFlag ; jump if below
+		mov     bx, 0AAAAh
+		cmp     ax, 0C0h
+		jb      short StopSongFlag
+		mov     bx, 8888h
+		cmp     ax, 180h
+		jb      short StopSongFlag
+		mov     bx, 8080h
+		cmp     ax, 300h
+		jb      short StopSongFlag
+		xor     bl, bl
 
 StopSongFlag:
-		mov	cs:BitTimer, bx	; write	either FFFF, AAAA, 8888, or 8080 to the	BitTimer
-		mov	al, cs:SongFlag	; move the SongFlag to AX's low byte
-		or	al, al
-		jns	short StopDriverEnd
-		or	al, 40h		; turn that 80 into a C0
-		mov	cs:SongFlag, al	; write	C0 to SongFlag!
+		mov     cs:BitTimer, bx ; write either FFFF, AAAA, 8888, or 8080 to the BitTimer
+		mov     al, cs:SongFlag ; move the SongFlag to AX's low byte
+		or      al, al
+		jns     short StopDriverEnd
+		or      al, 40h         ; turn that 80 into a C0
+		mov     cs:SongFlag, al ; write C0 to SongFlag!
 
 StopDriverEnd:
 		retf
