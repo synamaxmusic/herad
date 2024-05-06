@@ -188,7 +188,9 @@ OPLPortTable:
 		db	0, 1, 2, 8, 9, 0Ah, 10h, 11h, 12h
 
 FineBendTable:
-		db	3, 4, 5, 0Bh, 0Ch, 0Dh, 13h, 14h, 15h, 13h, 15h, 15h, 17h, 19h, 1Ah, 1Bh, 1Dh, 1Fh, 21h, 23h, 24h, 25h
+		db	3, 4, 5, 0Bh, 0Ch, 0Dh, 13h, 14h, 15h
+unk_BendTable:
+		db	13h, 15h, 15h, 17h, 19h, 1Ah, 1Bh, 1Dh, 1Fh, 21h, 23h, 24h, 25h
 CoarseBendTable:
 		db	0, 5, 0Ah, 0Fh, 14h, 0, 6, 0Ch, 12h, 18h
 
@@ -842,7 +844,7 @@ NoteOn_90:
 		db      2Dh
 		dw      14h
 		;;;;;;;;;;;;;;;;;;;;;
-		add     si, ax	              ; add the value from AX into SI, which is the drum keymap instrument offset.  This will take us to the instrument number inside the keymap array.
+		add     si, ax                ; add the value from AX into SI, which is the drum keymap instrument offset.  This will take us to the instrument number inside the keymap array.
 		mov     ah, es:[si]           ; grab the instrument byte in the keymap array and place it in AX's high byte
 		call    WriteInstrument
 		pop     es
@@ -873,11 +875,11 @@ WriteTranspose:
 		call    NoteWrite
 
 WriteMidiPitch:
-		pop     ax		; place	MIDI pitch and velocity	back in	AX
-		mov     al, ah		; copy pitch byte to AX's low byte
-		xor     ah, ah		; zero out AX's high byte
-		mov     [di+_MidiCurPitch], al	; write	the MIDI pitch!
-		;sub    ax, 48h	        ; AX - 48 = value
+		pop     ax                    ; place MIDI pitch and velocity back in AX
+		mov     al, ah                ; copy pitch byte to AX's low byte
+		xor     ah, ah                ; zero out AX's high byte
+		mov     [di+_MidiCurPitch], al ; write the MIDI pitch!
+		;sub    ax, 48h               ; AX - 48 = value
 		;;;;;;;;;;;;;;;;;;;;;;;;
 		db      2Dh
 		dw      48h
@@ -885,31 +887,31 @@ WriteMidiPitch:
 		mov     cl, [di+_XSlideDuration] ; take the Pitch Slide Duration byte and place it in CX's low byte
 		mov     [di+_XSlideDurCount], cl ; take the Pitch Slide Duration value in CX and place it at the Pitch Slide Duration Counter offset
 		mov     byte ptr [di+_XSlideCounter], SlideCenter ; resets the pitch slide by writing 40 at 0x10E
-		jmp     loc_95C         ; jump to 95C
+		jmp     loc_95C               ; jump to 95C
 
 
 ; =============== S U B	R O U T	I N E =======================================
 
 
 NoteOff_80:
-		call	GetChMidiDelay
+		call    GetChMidiDelay
 
 loc_5D2:
-		mov	bh, [di+_XRootNoteTrans]	; grab transpose byte and place	it in BX's high byte
-		mov	bl, bh		; copy BX's high byte to BX's low byte
-		sub	bh, 31h	; '1'   ; subtract 31 from BX's high byte
-		cmp	bh, 60h	; '`'   ; compare the transpose value at BX's high byte to 60.  The result will change the CF flag.
-		jnb	short loc_5E6	; if transpose value is	less than 60 (CF flag is 1), DON'T jump
-		mov	ah, bh		; copy the subtracted transpose	byte to	replace	the MIDI byte at AX's high byte
-		xor	bl, bl		; zero out the original	transpose value
-		add	ah, 18h		; add 18 to the	subtracted transpose byte
+		mov     bh, [di+_XRootNoteTrans] ; grab transpose byte and place it in BX's high byte
+		mov     bl, bh                ; copy BX's high byte to BX's low byte
+		sub     bh, 31h               ; subtract 31 from BX's high byte
+		cmp     bh, 60h               ; compare the transpose value at BX's high byte to 60.  The result will change the CF flag.
+		jnb     short loc_5E6         ; if transpose value is less than 60 (CF flag is 1), DON'T jump
+		mov     ah, bh                ; copy the subtracted transpose byte to replace the MIDI byte at AX's high byte
+		xor     bl, bl                ; zero out the original transpose value
+		add     ah, 18h               ; add 18 to the subtracted transpose byte
 
 loc_5E6:
-		add	ah, bl		; add zero?  this doesn't do anything
-		cmp	[di+_MidiCurPitch], ah	; compare the MIDI pitch byte with AX's high byte
-		jnz	short NoteOffEnd ; if the bytes	are not	the same, jump
-		or	byte ptr [di+_MidiCurPitch], 80h ; write the NoteOff to memory!
-		jmp	KeyOffChan
+		add     ah, bl                ; add zero?  this doesn't do anything
+		cmp     [di+_MidiCurPitch], ah ; compare the MIDI pitch byte with AX's high byte
+		jnz     short NoteOffEnd      ; if the bytes are not the same, jump
+		or      byte ptr [di+_MidiCurPitch], 80h ; write the NoteOff to memory!
+		jmp     KeyOffChan
 
 NoteOffEnd:
 		retn
@@ -919,36 +921,36 @@ NoteOffEnd:
 
 
 EndofTrack_FF:
-		mov	word ptr [di], 0FFFFh ;	write FFFF at the Current Midi Delay Counter offset
-		sub	word ptr [di+_MidiTrackPos], 2 ; subtract	2 from the MIDI	Track Position offset
-		or	dx, dx		; [dx was zero here]
-		jnz	short locret_61C
-		dec	ds:ChangeSongFlag ; SongChange is decreased to zero
-		jz	short ClearStop	; jump if zero
-		jns	short loc_60D
-		inc	ds:ChangeSongFlag
+		mov     word ptr [di], 0FFFFh ; write FFFF at the Current Midi Delay Counter offset
+		sub     word ptr [di+_MidiTrackPos], 2 ; subtract 2 from the MIDI Track Position offset
+		or      dx, dx                ; [dx was zero here]
+		jnz     short locret_61C
+		dec     ds:ChangeSongFlag     ; SongChange is decreased to zero
+		jz      short ClearStop       ; jump if zero
+		jns     short loc_60D
+		inc     ds:ChangeSongFlag
 
 loc_60D:
-		call	SongInitStart
-		les	bx, dword ptr ds:SizeOffset
-		mov	di, _MidiEventDelay
-		call	LoopCheck
-		dec	word ptr [di]
+		call    SongInitStart
+		les     bx, dword ptr ds:SizeOffset
+		mov     di, _MidiEventDelay
+		call    LoopCheck
+		dec     word ptr [di]
 
 locret_61C:
 		retn
 ; ---------------------------------------------------------------------------
 
 ClearStop:
-		mov	ax, 0FFFFh	; put FFFF in AX
-		push	es
-		push	ds
-		pop	es
-		mov	cx, TrackNum
-		rep stosw		; write	FFFF in	ALL the	MIDI Track Position offsets!
-		pop	es
-		push	cs
-		call	near ptr ShutUp
+		mov     ax, 0FFFFh            ; put FFFF in AX
+		push    es
+		push    ds
+		pop     es
+		mov     cx, TrackNum
+		rep stosw                     ; write FFFF in ALL the MIDI Track Position offsets!
+		pop     es
+		push    cs
+		call    near ptr ShutUp
 		retn
 
 
@@ -956,7 +958,7 @@ ClearStop:
 
 
 Aftertouch_D0:
-		call	GetChMidiDelay
+		call    GetChMidiDelay
 		retn
 
 
@@ -964,104 +966,104 @@ Aftertouch_D0:
 
 
 sub_632:
-		mov	ah, al		; copy the velocity byte to AX's high byte
-		mov	al, 80h	; '€'   ; place 80 in AX's low byte
-		sub	al, ah		; subtract 80 from the velocity	byte
-		mov	bx, [di+_FMOutputLevel]	; grab the output level	bytes at 0x144 and place them in BX
-		mov	cx, [di+_FMOutputScaling]	; grab the output level	scaling	bytes at 0x132 and place them in CX.
-		or	cl, cl
-		jz	short loc_673	; jump if zero
-		push	ax
-		jns	short loc_64B
-		neg	cl
-		mov	al, ah		; change Pitch Slide Range
+		mov     ah, al                ; copy the velocity byte to AX's high byte
+		mov     al, 80h               ; place 80 in AX's low byte
+		sub     al, ah                ; subtract 80 from the velocity byte
+		mov     bx, [di+_FMOutputLevel] ; grab the output level bytes at 0x144 and place them in BX
+		mov     cx, [di+_FMOutputScaling] ; grab the output level scaling bytes at 0x132 and place them in CX.
+		or      cl, cl
+		jz      short loc_673         ; jump if zero
+		push    ax
+		jns     short loc_64B
+		neg     cl
+		mov     al, ah                ; change Pitch Slide Range
 
 loc_64B:
-		sub	cl, 4
-		neg	cl
-		shr	al, cl
-		mov	ah, bl
-		and	ah, 3Fh
-		add	ah, al
-		cmp	ah, 3Fh	; '?'
+		sub     cl, 4
+		neg     cl
+		shr     al, cl
+		mov     ah, bl
+		and     ah, 3Fh
+		add     ah, al
+		cmp     ah, 3Fh
 
-loc_65C:	
-		jbe	short loc_660
-		mov	ah, 3Fh	; '?'
+loc_65C:
+		jbe     short loc_660
+		mov     ah, 3Fh
 
 loc_660:
-		and	bl, 0C0h
-		or	bl, ah
-		mov	ah, bl
-		mov	si, OPLPortTable
-		add	si, dx
+		and     bl, 0C0h
+		or      bl, ah
+		mov     ah, bl
+		mov     si, OPLPortTable
+		add     si, dx
 		lodsb
-		add	al, 40h	; '@'
-		call	ChipWrite
-		pop	ax
+		add     al, 40h
+		call    ChipWrite
+		pop     ax
 
 loc_673:
-		or	ch, ch
-		jz	short loc_6A5	; jump if zero
-		push	ax
-		jns	short loc_67E
-		neg	ch
-		mov	al, ah
+		or      ch, ch
+		jz      short loc_6A5         ; jump if zero
+		push    ax
+		jns     short loc_67E
+		neg     ch
+		mov     al, ah
 
 loc_67E:
-		mov	cl, 4
-		sub	cl, ch
-		shr	al, cl
-		mov	ah, bh
-		and	ah, 3Fh
-		add	ah, al
-		cmp	ah, 3Fh	; '?'
-		jbe	short loc_692
-		mov	ah, 3Fh	; '?'
+		mov     cl, 4
+		sub     cl, ch
+		shr     al, cl
+		mov     ah, bh
+		and     ah, 3Fh
+		add     ah, al
+		cmp     ah, 3Fh
+		jbe     short loc_692
+		mov     ah, 3Fh
 
 loc_692:
-		and	bh, 0C0h
-		or	bh, ah
-		mov	ah, bh
-		mov	si, FineBendTable
-		add	si, dx
+		and     bh, 0C0h
+		or      bh, ah
+		mov     ah, bh
+		mov     si, FineBendTable
+		add     si, dx
 		lodsb
-		add	al, 40h	; '@'
-		call	ChipWrite
-		pop	ax
+		add     al, 40h
+		call    ChipWrite
+		pop     ax
 
 loc_6A5:
-		mov	[di+_FMOutputRegister], bx	; grab BX and place it at Output Level Register	value (0x156)
-		mov	cx, [di+_FMFeedbackRegister]	; grab the Panning/Feedback/Connector Register Value (0x168) and place in CX
-		or	cl, cl
-		jnz	short loc_6B2	; jump if not zero (ZF = 0)
+		mov     [di+_FMOutputRegister], bx ; grab BX and place it at Output Level Register value (0x156)
+		mov     cx, [di+_FMFeedbackRegister] ; grab the Panning/Feedback/Connector Register Value (0x168) and place in CX
+		or      cl, cl
+		jnz     short loc_6B2         ; jump if not zero (ZF = 0)
 		retn
 ; ---------------------------------------------------------------------------
 
 loc_6B2:
-		jns	short loc_6B8
-		neg	cl
-		mov	al, ah
+		jns     short loc_6B8
+		neg     cl
+		mov     al, ah
 
 loc_6B8:
-		sub	cl, 6
-		neg	cl
-		shr	al, cl
-		mov	ah, ch
-		and	ax, 0FFEh
-		add	al, ah
-		cmp	al, 0Fh
-		jbe	short loc_6CE
-		and	al, 0Fh
-		or	al, 0Eh
+		sub     cl, 6
+		neg     cl
+		shr     al, cl
+		mov     ah, ch
+		and     ax, 0FFEh
+		add     al, ah
+		cmp     al, 0Fh
+		jbe     short loc_6CE
+		and     al, 0Fh
+		or      al, 0Eh
 
 loc_6CE:
-		mov	ah, al
-		and	ch, 30h
-		or	ah, ch
-		mov	al, dl
-		add	al, 0C0h ; 'À'
-		call	ChipWrite
+		mov     ah, al
+		and     ch, 30h
+		or      ah, ch
+		mov     al, dl
+		add     al, 0C0h
+		call    ChipWrite
 
 
 locret_6DC:
@@ -1071,205 +1073,205 @@ locret_6DC:
 
 
 PitchBend_E0:
-		mov	al, ah		; copy pitch bend byte from AX's high byte to low byte
-		call	GetChMidiDelay
+		mov     al, ah                ; copy pitch bend byte from AX's high byte to low byte
+		call    GetChMidiDelay
 
 
 ; =============== S U B	R O U T	I N E =======================================
 
 
 BendSetup:
-		mov	cl, [di+_MidiCurPitch]	; grab the data	at 0xEB	(MIDI Pitch byte) and write to CX's low byte
-		or	cl, cl
-		jle	short locret_6DC ; jump	if less	or equal to
-		xor	ch, ch		; clear	CX's high byte
-		mov	ah, ch		; copy zero to AX's high byte, this overwrites the Pitch Slide Range byte
-		xchg	ax, cx		; switch cx with ax (CX	is now pitch slide count, AX is	now MIDI pitch)
-		sub	al, 18h		; subtract 18 from MIDI	pitch
-		mov	bl, 0Ch		; write	C to BX's low byte
-		div	bl		; divide AX by BX's low byte
-		xchg	ax, cx		; switch cx with ax (CX	is now MIDI pitch, AX is now pitch slide count)
+		mov     cl, [di+_MidiCurPitch] ; grab the data at 0xEB (MIDI Pitch byte) and write to CX's low byte
+		or      cl, cl
+		jle     short locret_6DC      ; jump if less or equal to
+		xor     ch, ch                ; clear CX's high byte
+		mov     ah, ch                ; copy zero to AX's high byte, this overwrites the Pitch Slide Range byte
+		xchg    ax, cx                ; switch cx with ax (CX is now pitch slide count, AX is now MIDI pitch)
+		sub     al, 18h               ; subtract 18 from MIDI pitch
+		mov     bl, 0Ch               ; write C to BX's low byte
+		div     bl                    ; divide AX by BX's low byte
+		xchg    ax, cx                ; switch cx with ax (CX is now MIDI pitch, AX is now pitch slide count)
 
 loc_6F5:
-		mov	bx, [di+10Eh]	; copy data at 0x1B0 (3B08:02B0) and place in BX (the data at this offset should be just zeros)
-		or	bh, cs:Terminator ; grab terminator byte at 0x1C2 and perform OR with BX's high byte (BX now becomes FF00)
-		cmp	byte ptr [di+_XSlideRangeFlag], 0 ; compare Pitch Slide Range Flag to zero
-		jnz	short BendFlagOn ; if Pitch Slide Range	Flag is	zero, continue;	otherwise, jump
-		;sub	ax, 40h		; subtract 40 from pitch slide count
+		mov     bx, [di+10Eh]         ; copy data at 0x1B0 (3B08:02B0) and place in BX (the data at this offset should be just zeros)
+		or      bh, cs:Terminator     ; grab terminator byte at 0x1C2 and perform OR with BX's high byte (BX now becomes FF00)
+		cmp     byte ptr [di+_XSlideRangeFlag], 0 ; compare Pitch Slide Range Flag to zero
+		jnz     short BendFlagOn      ; if Pitch Slide Range Flag is zero, continue; otherwise, jump
+		;sub    ax, 40h               ; subtract 40 from pitch slide count
 		;;;;;;;;;;;;;;;;;;;;;;;;
-		db	2Dh
-		dw	40h
+		db      2Dh
+		dw      40h
 		;;;;;;;;;;;;;;;;;;;;;;;;
-		jnb	short BendUp	; Jump short if	not below (jump	if the pitch bend goes up)
-		neg	ax		; get the two's compliment from AX
-		ror	ax, 1		; rotate bits to the right
-		ror	ax, 1
-		ror	ax, 1
-		ror	ax, 1
-		ror	ax, 1
-		sub	ch, al		; subtract CX's high byte (modified MIDI pitch) with AX's low byte (modified pitch bend)
-		jnb	short loc_722
-		add	ch, 0Ch		; add C	to CX's high byte
-		dec	cl		; decrease CX's low byte
-		jns	short loc_722
-		xor	cx, cx
+		jnb     short BendUp          ; Jump short if not below (jump if the pitch bend goes up)
+		neg     ax                    ; get the two's compliment from AX
+		ror     ax, 1                 ; rotate bits to the right
+		ror     ax, 1
+		ror     ax, 1
+		ror     ax, 1
+		ror     ax, 1
+		sub     ch, al                ; subtract CX's high byte (modified MIDI pitch) with AX's low byte (modified pitch bend)
+		jnb     short loc_722
+		add     ch, 0Ch               ; add C to CX's high byte
+		dec     cl                    ; decrease CX's low byte
+		jns     short loc_722
+		xor     cx, cx
 
 loc_722:
-		mov	al, ch		; copy CX's high byte to AX's low byte
-		mov	bx, 183h	; place	183 into BX
-		xlat			; grab byte from table 0x83 (DS:BX), using AX's low byte as a table index!
-		mul	ah		; multiply AX's low byte and high byte together
-		mov	al, ah		; copy AX's high byte to the low byte
-		xchg	al, ch		; switch CX's high byte with AX's low byte
+		mov     al, ch                ; copy CX's high byte to AX's low byte
+		mov     bx, unk_BendTable     ; place 183 into BX
+		xlat                          ; grab byte from table 0x83 (DS:BX), using AX's low byte as a table index!
+		mul     ah                    ; multiply AX's low byte and high byte together
+		mov     al, ah                ; copy AX's high byte to the low byte
+		xchg    al, ch                ; switch CX's high byte with AX's low byte
 
 GetFreq:
-		xor	ah, ah		; zero out AX's high byte
-		add	ax, ax		; AX + AX (this	value is now our table index for our note's frequency!)
-		mov	si, ax		; place	AX into	SI
-		mov	ax, [si+FreqTable]	; look up freq table and grab correct note frequency!
-		sub	al, ch		; subtract the low byte	of the frequency with the value	in CX's high byte
-		sbb	ah, 0		; Adds 0 and the carry (CF) flag, and subtracts	the result from	AX's high byte. The result of the subtraction is stored in AX's high byte.
-		jmp	NoteKeyOn
+		xor     ah, ah                ; zero out AX's high byte
+		add     ax, ax                ; AX + AX (this value is now our table index for our note's frequency!)
+		mov     si, ax                ; place AX into SI
+		mov     ax, [si+FreqTable]    ; look up freq table and grab correct note frequency!
+		sub     al, ch                ; subtract the low byte of the frequency with the value in CX's high byte
+		sbb     ah, 0                 ; Adds 0 and the carry (CF) flag, and subtracts the result from AX's high byte. The result of the subtraction is stored in AX's high byte.
+		jmp     NoteKeyOn
 ; ---------------------------------------------------------------------------
 
 BendUp:
-		inc	ax		; increase AX by 1
-		ror	ax, 1		; rotate bits to the right, 5 times
-		ror	ax, 1
-		ror	ax, 1
-		ror	ax, 1
-		ror	ax, 1
-		add	ch, al		; add the low byte of AX to the	high byte of CX
-		cmp	ch, 0Ch		; compare C to the high	byte of	CX
-		jb	short loc_757	; jump if below	C
-		sub	ch, 0Ch
-		inc	cl
+		inc     ax                    ; increase AX by 1
+		ror     ax, 1                 ; rotate bits to the right, 5 times
+		ror     ax, 1
+		ror     ax, 1
+		ror     ax, 1
+		ror     ax, 1
+		add     ch, al                ; add the low byte of AX to the high byte of CX
+		cmp     ch, 0Ch               ; compare C to the high byte of CX
+		jb      short loc_757         ; jump if below C
+		sub     ch, 0Ch
+		inc     cl
 
 loc_757:
-		mov	al, ch		; copy CX's high byte to AX's low byte
-		mov	bx, 184h	; place	184 in BX
-		xlat			; using	AX's low byte as a table index, grab a byte starting from the table at 0x84 and place that byte as the low byte for AX.
-		mul	ah		; multiply the high byte and low byte of AX
-		mov	al, ah		; copy AX's high byte to AX's low byte
-		jmp	short GetFrequency ; switch CX's high byte with AX's low byte
+		mov     al, ch                ; copy CX's high byte to AX's low byte
+		mov     bx, unk_BendTable+1   ; place 184 in BX
+		xlat                          ; using AX's low byte as a table index, grab a byte starting from the table at 0x84 and place that byte as the low byte for AX.
+		mul     ah                    ; multiply the high byte and low byte of AX
+		mov     al, ah                ; copy AX's high byte to AX's low byte
+		jmp     short GetFrequency    ; switch CX's high byte with AX's low byte
 ; ---------------------------------------------------------------------------
 
 BendFlagOn:
-		;sub	ax, 40h		; take the pitch slide counter value and subtract it by 40
+		;sub    ax, 40h               ; take the pitch slide counter value and subtract it by 40
 		;;;;;;;;;;;;;;;;;;;;;;;;
-		db	2Dh
-		dw	40h
+		db      2Dh
+		dw      40h
 		;;;;;;;;;;;;;;;;;;;;;;;;
-		jnb	short CoarseBendUp ; if	signed,	continue
-		neg	ax		; two's compliment
-		mov	bh, 5
-		div	bh		; divide that value by 5
-		sub	ch, al
-		jnb	short GrabCoarseTable
-		add	ch, 0Ch
-		dec	cl
-		jns	short GrabCoarseTable
-		xor	cx, cx
+		jnb     short CoarseBendUp    ; if signed, continue
+		neg     ax                    ; two's compliment
+		mov     bh, 5
+		div     bh                    ; divide that value by 5
+		sub     ch, al
+		jnb     short GrabCoarseTable
+		add     ch, 0Ch
+		dec     cl
+		jns     short GrabCoarseTable
+		xor     cx, cx
 
 GrabCoarseTable:
-		mov	al, ah
-		mov	bx, 190h
-		cmp	ch, 6
-		jb	short GrabFreqTable
-		add	bx, 5
+		mov     al, ah
+		mov     bx, CoarseBendTable
+		cmp     ch, 6
+		jb      short GrabFreqTable
+		add     bx, 5
 
 GrabFreqTable:
-		xlat			; Using	the table at 0x90 (3B08:0190), use AX's low byte to index the table and place the value in AX
-		xchg	al, ch
-		xor	ah, ah
-		add	ax, ax
-		mov	si, ax
-		mov	ax, [si+FreqTable]
-		sub	al, ch
-		sbb	ah, 0
-		jmp	short NoteKeyOn
+		xlat                          ; Using the table at 0x90 (3B08:0190), use AX's low byte to index the table and place the value in AX
+		xchg    al, ch
+		xor     ah, ah
+		add     ax, ax
+		mov     si, ax
+		mov     ax, [si+FreqTable]
+		sub     al, ch
+		sbb     ah, 0
+		jmp     short NoteKeyOn
 ; ---------------------------------------------------------------------------
 
 CoarseBendUp:
-		mov	bh, 5
-		div	bh
-		add	ch, al
-		cmp	ch, 0Ch
-		jb	short loc_7AC
-		sub	ch, 0Ch
-		inc	cl
+		mov     bh, 5
+		div     bh
+		add     ch, al
+		cmp     ch, 0Ch
+		jb      short loc_7AC
+		sub     ch, 0Ch
+		inc     cl
 
 loc_7AC:
-		mov	al, ah
-		mov	bx, 190h
-		cmp	ch, 6
-		jb	short loc_7B9
-		add	bx, 5
+		mov     al, ah
+		mov     bx, 190h
+		cmp     ch, 6
+		jb      short loc_7B9
+		add     bx, 5
 
 loc_7B9:
 		xlat
 
 GetFrequency:
-		xchg	al, ch		; switch CX's high byte with AX's low byte
-		xor	ah, ah		; zero out AX's high byte
-		add	ax, ax		; add AX with AX
-		mov	si, ax		; copy AX to SI
-		mov	ax, [si+FreqTable]	; grab the value at 0x47 (Frequency Table) and copy to AX
-		add	al, ch		; add CX's high byte to AX's low byte
-		adc	ah, 0		; add with carry flag to AX's high byte
+		xchg    al, ch                ; switch CX's high byte with AX's low byte
+		xor     ah, ah                ; zero out AX's high byte
+		add     ax, ax                ; add AX with AX
+		mov     si, ax                ; copy AX to SI
+		mov     ax, [si+FreqTable]    ; grab the value at 0x47 (Frequency Table) and copy to AX
+		add     al, ch                ; add CX's high byte to AX's low byte
+		adc     ah, 0                 ; add with carry flag to AX's high byte
 
 NoteKeyOn:
-		shl	cl, 1		; shift	CX's low byte bits to the left, two times
-		shl	cl, 1
-		or	ah, cl		; perform OR on	CX's low byte and AX's high byte and write it to AX's high byte
-		mov	si, dx		; copy DX to SI
-		add	si, si		; add SI with itself
-		mov	[si+FNumRegisters], ax	; write	new FNUM register value!
-		cmp	byte ptr [di+_MidiCurPitch], 0 ; compare zero with 0xEB (MIDI pitch)
+		shl     cl, 1                 ; shift CX's low byte bits to the left, two times
+		shl     cl, 1
+		or      ah, cl                ; perform OR on CX's low byte and AX's high byte and write it to AX's high byte
+		mov     si, dx                ; copy DX to SI
+		add     si, si                ; add SI with itself
+		mov     [si+FNumRegisters], ax	; write	new FNUM register value!
+		cmp     byte ptr [di+_MidiCurPitch], 0 ; compare zero with 0xEB (MIDI pitch)
 
 loc_7DD:
-		jz	short loc_7E2	; jump if zero,	otherwise continue
-		or	ah, 20h		; perform OR with 20 and AX's high byte
+		jz      short loc_7E2         ; jump if zero, otherwise continue
+		or      ah, 20h               ; perform OR with 20 and AX's high byte
 
 loc_7E2:
-		jmp	NoteWrite
+		jmp     NoteWrite
 
 
 ; =============== S U B	R O U T	I N E =======================================
 
 
 GetChMidiDelay:
-		push	ax
-		xor	ax, ax		; zero out AX
-		lods	byte ptr es:[si] ; grab	MIDI delay byte	at ES (SongSegment):[SI] (TrackPosition).   Increment SI by 1
-		or	al, al
-		jns	short UpdateTrackPos	; Jump if the delay byte not signed.  If the byte is 80	or above, we got more work to do.
-		xor	cx, cx		; zero out CX
+		push    ax
+		xor     ax, ax                ; zero out AX
+		lods    byte ptr es:[si]      ; grab MIDI delay byte at ES (SongSegment):[SI] (TrackPosition).   Increment SI by 1
+		or      al, al
+		jns     short UpdateTrackPos  ; Jump if the delay byte not signed.  If the byte is 80 or above, we got more work to do.
+		xor     cx, cx                ; zero out CX
 
 GrabMidiDelay:
-		mov	ch, cl		; take the low byte of CX and copy it to the high byte of CX
-		mov	cl, ah		; take the high	byte of	AX and copy it to the low byte of CX
-		mov	ah, al		; take the low byte of AX and copy it to the high byte of AX
-		lods	byte ptr es:[si] ; grab	MIDI delay byte	at ES (SongSegment):[SI] (TrackPosition) again.	  Increment SI by 1 again.  If the previous delay byte is larger than 7F, this is where	the second delay byte will go.
-		or	al, al
-		js	short GrabMidiDelay	; take the low byte of CX and copy it to the high byte of CX
-		and	ax, 7F7Fh	; perform AND on AX with 7F7F.	 Each bit of the result	of the AND instruction is a 1 if both corresponding bits of the	operands are 1;	otherwise, it becomes a	0.
-		and	cx, 7F7Fh	; perform AND on CX with 7F7F
-		shl	cl, 1		; shift	logical	left 1 bit at low byte of CX, ZF flag changes
-		shr	cx, 1		; shift	logical	right 1	bit for	CX
-		shl	al, 1		; shift	logical	left 1 bit at low byte of AX, ZF flag changes
-		shl	ax, 1		; shift	logical	left 1 bit at AX (basically slide everything to	the left, add a	zero at	the end	and disregard MS Bit)
-		shr	cx, 1		; shift	logical	right 1	bit for	CX
-		rcr	ax, 1		; RCR instruction shifts the CF	flag into the most-significant bit and shifts the least-significant bit	into the CF flag
-		shr	cx, 1		; getting repetitive, ain't it?
-		rcr	ax, 1		; THIS is your delay!!
-		jcxz	short UpdateTrackPos	; Jump short if	CX register is 0
-		mov	ax, 0FFFFh	; if no	track exists, put FFFF in AX
+		mov     ch, cl                ; take the low byte of CX and copy it to the high byte of CX
+		mov     cl, ah                ; take the high byte of AX and copy it to the low byte of CX
+		mov     ah, al                ; take the low byte of AX and copy it to the high byte of AX
+		lods    byte ptr es:[si]      ; grab MIDI delay byte at ES (SongSegment):[SI] (TrackPosition) again.   Increment SI by 1 again.  If the previous delay byte is larger than 7F, this is where the second delay byte will go.
+		or      al, al
+		js      short GrabMidiDelay   ; take the low byte of CX and copy it to the high byte of CX
+		and     ax, 7F7F              ; perform AND on AX with 7F7F.  Each bit of the result of the AND instruction is a 1 if both corresponding bits of the operands are 1; otherwise, it becomes a 0.
+		and     cx, 7F7F              ; perform AND on CX with 7F7F
+		shl     cl, 1                 ; shift logical left 1 bit at low byte of CX, ZF flag changes
+		shr     cx, 1                 ; shift logical right 1 bit for CX
+		shl     al, 1                 ; shift logical left 1 bit at low byte of AX, ZF flag changes
+		shl     ax, 1                 ; shift logical left 1 bit at AX (basically slide everything to the left, add a zero at the end and disregard MS Bit)
+		shr     cx, 1                 ; shift logical right 1 bit for CX
+		rcr     ax, 1                 ; RCR instruction shifts the CF flag into the most-significant bit and shifts the least-significant bit into the CF flag
+		shr     cx, 1                 ; getting repetitive, ain't it?
+		rcr     ax, 1                 ; THIS is your delay!!
+		jcxz    short UpdateTrackPos  ; Jump short if CX register is 0
+		mov     ax, 0FFFFh            ; if no track exists, put FFFF in AX
 
 UpdateTrackPos:
-		mov	[di], ax	; take your delay word and place it in memory!
-		mov	[di+_MidiTrackPos], si	; update Current Track Position
-		pop	ax		; pop AX to get	original value again
+		mov     [di], ax              ; take your delay word and place it in memory!
+		mov     [di+_MidiTrackPos], si ; update Current Track Position
+		pop     ax                    ; pop AX to get original value again
 		retn
 
 
@@ -1277,19 +1279,19 @@ UpdateTrackPos:
 
 
 KeyOffAll:
-		push	ds
-		push	cs
-		pop	ds
-		mov	cx, TrackNum	; place	9 in CX
+		push    ds
+		push    cs
+		pop     ds
+		mov     cx, TrackNum          ; place 9 in CX
 
 KeyOffLoop:
-		push	cx
-		mov	dx, cx		; copy CX into DX
-		dec	dx		; decrease DX
-		call	KeyOffChan
-		pop	cx
-		loop	KeyOffLoop	; repeat until CX is depleted
-		pop	ds
+		push    cx
+		mov     dx, cx                ; copy CX into DX
+		dec     dx                    ; decrease DX
+		call    KeyOffChan
+		pop     cx
+		loop    KeyOffLoop            ; repeat until CX is depleted
+		pop     ds
 		retn
 
 
@@ -1297,67 +1299,67 @@ KeyOffLoop:
 
 
 sub_831:
-		mov	al, ds:EEx19C	; copy EE byte at 0x9C into the	low byte of AX
-		cmp	al, ds:EEx19D	; compare this byte with the byte at 0x9D
-		jnz	short loc_846	; if not zero, jump to 846
-		mov	ds:BitTimer, 1	; copy 1 to 0x9F
-		and	ds:SongFlag, 0BFh ; check if SongFlag is above CO
+		mov     al, ds:EEx19C         ; copy EE byte at 0x9C into the low byte of AX
+		cmp     al, ds:EEx19D         ; compare this byte with the byte at 0x9D
+		jnz     short loc_846         ; if not zero, jump to 846
+		mov     ds:BitTimer, 1        ; copy 1 to 0x9F
+		and     ds:SongFlag, 0BFh     ; check if SongFlag is above CO
 		retn
 ; ---------------------------------------------------------------------------
 
 loc_846:
-		mov	ah, al
-		mov	bl, ds:EEx19D
-		mov	bh, bl
-		and	al, 0Fh
-		and	bl, 0Fh
-		cmp	al, bl
-		jz	short loc_85F
-		inc	ah
-		jb	short loc_85F
-		dec	ah
-		dec	ah
+		mov     ah, al
+		mov     bl, ds:EEx19D
+		mov     bh, bl
+		and     al, 0Fh
+		and     bl, 0Fh
+		cmp     al, bl
+		jz      short loc_85F
+		inc     ah
+		jb      short loc_85F
+		dec     ah
+		dec     ah
 
 loc_85F:
-		mov	al, ah
-		and	ah, 0F0h
-		and	bh, 0F0h
-		cmp	ah, bh
-		jz	short loc_873
-		add	al, 10h
-		cmp	ah, bh
-		jb	short loc_873
-		sub	al, 20h	; ' '
+		mov     al, ah
+		and     ah, 0F0h
+		and     bh, 0F0h
+		cmp     ah, bh
+		jz      short loc_873
+		add     al, 10h
+		cmp     ah, bh
+		jb      short loc_873
+		sub     al, 20h
 
 loc_873:
-		mov	ds:EEx19C, al
-		or	al, al
-		jnz	short loc_88A
-		push	dx
-		push	si
-		call	KeyOffAll
-		pop	si
-		pop	dx
-		mov	ds:SongFlag, 0
+		mov     ds:EEx19C, al
+		or      al, al
+		jnz     short loc_88A
+		push    dx
+		push    si
+		call    KeyOffAll
+		pop     si
+		pop     dx
+		mov     ds:SongFlag, 0
 
 
 ; =============== S U B	R O U T	I N E =======================================
 
 
-SoundBlaster:	
-		mov	al, cs:EEx19C	; grab EE at 0x9C and place in low byte	at AX
+SoundBlaster:
+		mov     al, cs:EEx19C         ; grab EE at 0x9C and place in low byte at AX
 
 loc_88A:
-		mov	ah, 26h	        ; place 26 at high byte in AX.  Now we have 26EE
-		push	dx
-		mov	dx, word ptr cs:PortNum	; grab 0220 at 0x1C6, put it in	DX
-		add	dl, 4		; make it 224
-		xchg	al, ah		; exchange the low byte	with the high byte at AX. Now we have EE26
-		out	dx, al		; send the low byte of AX (26) to I/O port 224
-		inc	dx		; increment DX,	now it's 225
-		xchg	al, ah		; exchange the low byte	with the high byte at AX. Now we have 26EE again.
-		out	dx, al		; send the low byte of AX (EE) to I/O port 225
-		pop	dx
+		mov     ah, 26h               ; place 26 at high byte in AX.  Now we have 26EE
+		push    dx
+		mov     dx, word ptr cs:PortNum ; grab 0220 at 0x1C6, put it in	DX
+		add     dl, 4                 ; make it 224
+		xchg    al, ah                ; exchange the low byte with the high byte at AX. Now we have EE26
+		out     dx, al                ; send the low byte of AX (26) to I/O port 224
+		inc     dx                    ; increment DX, now it's 225
+		xchg    al, ah                ; exchange the low byte with the high byte at AX. Now we have 26EE again.
+		out     dx, al                ; send the low byte of AX (EE) to I/O port 225
+		pop     dx
 		retn
 
 
@@ -1366,15 +1368,15 @@ loc_88A:
 
 
 ClearSusRel:
-		mov	si, OPLPortTable	; places 171 in	SI
-		mov	cx, AllTrackPtrs	; places 12 in CX
-		mov	ah, 0FFh	; places 0xFF at high byte in AX
+		mov     si, OPLPortTable      ; places 171 in SI
+		mov     cx, AllTrackPtrs      ; places 12 in CX
+		mov     ah, 0FFh              ; places 0xFF at high byte in AX
 
 ClearSusLoop:
-		lodsb			; grabs	the byte at 0x71, which	is 00, and places it in	the low	byte of	AX, which gives	us FF00.  SI increments	to 172.
-		add	al, 80h	; '€'   ; add 80, which gives us FF80.  The lookup table at 0x71 is for cycling through all the OPL registers and adding each byte, one at a time to 80, thus giving us OPL registers 80-95.
-		call	ChipWrite	; writes FF at OPL register 80
-		loop	ClearSusLoop		; do this 18 times, for	OPL registers 80-95.
+		lodsb                         ; grabs the byte at 0x71, which is 00, and places it in the low byte of AX, which gives us FF00.  SI increments to 172.
+		add     al, 80h               ; add 80, which gives us FF80.  The lookup table at 0x71 is for cycling through all the OPL registers and adding each byte, one at a time to 80, thus giving us OPL registers 80-95.
+		call    ChipWrite             ; writes FF at OPL register 80
+		loop    ClearSusLoop          ; do this 18 times, for OPL registers 80-95.
 		retn
 
 
@@ -1382,194 +1384,194 @@ ClearSusLoop:
 
 
 LoadInstrument:
-		add	dx, dx
-		mov	bx, dx
-		mov	dx, cs:[bx+OPLRegTable] ; Table at 0x35
-		shr	bx, 1
-		call	LoadChanSlot
-		xchg	dh, dl
-		mov	ah, [si+1Bh]	; after	loading	the instrument,	get ready to grab stuff	from the next instrument
-		add	si, 0Dh		; after	the first pass of grabbing the mod stuff, now get the carrier stuff
-		jmp	short LoadSlotOnly
+		add     dx, dx
+		mov     bx, dx
+		mov     dx, cs:[bx+OPLRegTable] ; Table at 0x35
+		shr     bx, 1
+		call    LoadChanSlot
+		xchg    dh, dl
+		mov     ah, [si+1Bh]          ; after loading the instrument, get ready to grab stuff from the next instrument
+		add     si, 0Dh               ; after the first pass of grabbing the mod stuff, now get the carrier stuff
+		jmp     short LoadSlotOnly
 
 
 ; =============== S U B	R O U T	I N E =======================================
 
 
-LoadChanSlot:	
-		mov	ah, [si+0Ch]	; grab connector byte
-		shr	ax, 1
-		mov	ah, [si+2]	; grab feedback
-		not	al
-		shl	ax, 1
-		and	ah, 0Fh
-		mov	al, 0C0h
-		add	al, bl
-		call	ChipWrite
-		mov	ah, [si+1Ah]	; grab modulator waveform
+LoadChanSlot:
+		mov     ah, [si+0Ch]          ; grab connector byte
+		shr     ax, 1
+		mov     ah, [si+2]            ; grab feedback
+		not     al
+		shl     ax, 1
+		and     ah, 0Fh
+		mov     al, 0C0h
+		add     al, bl
+		call    ChipWrite
+		mov     ah, [si+1Ah]          ; grab modulator waveform
 
 LoadSlotOnly:
-		and	ah, 3
-		mov	al, 0E0h
+		and     ah, 3
+		mov     al, 0E0h
 
 loc_8E5:
-		add	al, dl
-		call	ChipWrite
-		mov	ah, [si+8]	; Modulator Output Level
-		mov	al, [si]	; Modulator Key	scaling	level
-		shl	ah, 1
-		shl	ah, 1
-		ror	ax, 1
-		ror	ax, 1
-		mov	al, 40h	; '@'
-		add	al, dl
-		call	ChipWrite
-		mov	ah, [si+3]	; Modulator Attack
-		mov	al, [si+6]	; Modulator Delay
-		shl	al, 1
-		shl	al, 1
-		shl	al, 1
-		shl	al, 1
-		shl	ax, 1
-		shl	ax, 1
-		shl	ax, 1
-		shl	ax, 1
-		mov	al, 60h	; '`'
-		add	al, dl
-		call	ChipWrite
-		mov	ah, [si+4]	; Modulator Sustain
-		mov	al, [si+7]	; Modulator Release
-		shl	al, 1
-		shl	al, 1
-		shl	al, 1
-		shl	al, 1
-		shl	ax, 1
-		shl	ax, 1
-		shl	ax, 1
-		shl	ax, 1
-		mov	al, 80h	; '€'
-		add	al, dl
-		call	ChipWrite
-		mov	al, [si+0Bh]	; Modulator Key	scaling/envelope rate
-		ror	ax, 1
-		mov	al, [si+5]	; Modulator Envelope gain
-		ror	ax, 1
-		mov	al, [si+0Ah]	; Modulator Frequency Vibrato
-		ror	ax, 1
-		mov	al, [si+9]	; Modulator Amplitude modulation (Tremolo)
-		ror	ax, 1
-		mov	al, [si+1]	; Modulator Frequency multiplier
-		and	ax, 0F00Fh
-		or	ah, al
-		mov	al, 20h	; ' '
-		add	al, dl
-		call	ChipWrite
+		add     al, dl
+		call    ChipWrite
+		mov     ah, [si+8]            ; Modulator Output Level
+		mov     al, [si]              ; Modulator Key scaling level
+		shl     ah, 1
+		shl     ah, 1
+		ror     ax, 1
+		ror     ax, 1
+		mov     al, 40h
+		add     al, dl
+		call    ChipWrite
+		mov     ah, [si+3]            ; Modulator Attack
+		mov     al, [si+6]            ; Modulator Delay
+		shl     al, 1
+		shl     al, 1
+		shl     al, 1
+		shl     al, 1
+		shl     ax, 1
+		shl     ax, 1
+		shl     ax, 1
+		shl     ax, 1
+		mov     al, 60h
+		add     al, dl
+		call    ChipWrite
+		mov     ah, [si+4]            ; Modulator Sustain
+		mov     al, [si+7]            ; Modulator Release
+		shl     al, 1
+		shl     al, 1
+		shl     al, 1
+		shl     al, 1
+		shl     ax, 1
+		shl     ax, 1
+		shl     ax, 1
+		shl     ax, 1
+		mov     al, 80h
+		add     al, dl
+		call    ChipWrite
+		mov     al, [si+0Bh]          ; Modulator Key scaling/envelope rate
+		ror     ax, 1
+		mov     al, [si+5]            ; Modulator Envelope gain
+		ror     ax, 1
+		mov     al, [si+0Ah]          ; Modulator Frequency Vibrato
+		ror     ax, 1
+		mov     al, [si+9]            ; Modulator Amplitude modulation (Tremolo)
+		ror     ax, 1
+		mov     al, [si+1]            ; Modulator Frequency multiplier
+		and     ax, 0F00Fh
+		or      ah, al
+		mov     al, 20h
+		add     al, dl
+		call    ChipWrite
 		retn
 
 loc_95C:
-		;add	ax, 30h	; '0'   ; take subtracted pitch value and add 30
-		;cmp	ax, 60h	; '`'   ; compare 60 to AX (AX - 60)
+		;add    ax, 30h               ; take subtracted pitch value and add 30
+		;cmp    ax, 60h               ; compare 60 to AX (AX - 60)
 		;;;;;;;;;;;;;;;;;;;;;;;;;;
-		db	05
-		dw	30h		; add	ax, 30h
+		db      05
+		dw      30h                   ; add ax, 30h
 		
-		db	3Dh
-		dw	60h		; cmp	ax, 60h
+		db      3Dh
+		dw      60h                   ; cmp ax, 60h
 		;;;;;;;;;;;;;;;;;;;;;;;;;;
-		jb	short KeyOnChan	; If AX	< 60 then jump (CF=1)
-		xor	ax, ax		; zero out AX
+		jb      short KeyOnChan       ; If AX < 60 then jump (CF=1)
+		xor     ax, ax                ; zero out AX
 
 KeyOnChan:
-		mov	bl, 0Ch		; place	C in low byte of BX
-		div	bl		; divide AX by BX's low byte
-		mov	cl, al		; copy low byte	of AX into low byte of CX
-		xchg	ah, al		; exchange low byte of AX with high byte of AX
-		xor	ah, ah		; zero out high	byte of	AX
-		add	ax, ax		; AX + AX
-		mov	si, ax		; copy AX into SI
-		mov	ax, [si+FreqTable]	; grab frequency number	from table and copy into AX
-		shl	cl, 1		; shift	bit to the left	by 1 in	low byte of CX
-		shl	cl, 1		; shift	bit to the left	by 1 in	low byte of CX
-		or	ah, cl		; OR low byte of CX with high byte of AX
-		mov	si, dx		; copy DX into SI
-		add	si, si		; SI + SI
-		mov	[si+FNumRegisters], ax	; write	the FNUM register value!!
-		or	ah, 20h		; write	KEY-ON register	bit
-		jmp	short NoteWrite
+		mov     bl, 0Ch               ; place C in low byte of BX
+		div     bl                    ; divide AX by BX's low byte
+		mov     cl, al                ; copy low byte of AX into low byte of CX
+		xchg    ah, al                ; exchange low byte of AX with high byte of AX
+		xor     ah, ah                ; zero out high byte of AX
+		add     ax, ax                ; AX + AX
+		mov     si, ax                ; copy AX into SI
+		mov     ax, [si+FreqTable]    ; grab frequency number from table and copy into AX
+		shl     cl, 1                 ; shift bit to the left by 1 in low byte of CX
+		shl     cl, 1                 ; shift bit to the left by 1 in low byte of CX
+		or      ah, cl                ; OR low byte of CX with high byte of AX
+		mov     si, dx                ; copy DX into SI
+		add     si, si                ; SI + SI
+		mov     [si+FNumRegisters], ax ; write the FNUM register value!!
+		or      ah, 20h               ; write KEY-ON register bit
+		jmp     short NoteWrite
 
 ; =============== S U B	R O U T	I N E =======================================
 
 
 KeyOffChan:
-		mov	si, dx		; copy DX into SI
-		add	si, si		; add SI + SI
-		mov	ax, [si+FNumRegisters]	; grab FNUM register and copy to AX
+		mov     si, dx                ; copy DX into SI
+		add     si, si                ; add SI + SI
+		mov     ax, [si+FNumRegisters] ; grab FNUM register and copy to AX
 
 NoteWrite:
-		mov	cx, ax		; copy the register value into CX
-		mov	al, dl		; then copy the	low byte of DX,	replacing the low byte of AX
-		add	al, 0A0h ; ' '  ; add A0 to the low byte of AX (this is the write register for  FNUM (Lower 8 bits))
-		mov	ah, cl		; copy the low byte of CX to the high byte of AX
-		mov	si, ax		; copy AX to SI
-		call	ChipWrite
-		mov	ax, si		; copy SI to AX
-		add	al, 10h		; add 10 to the	low byte of AX (A0 becomes BO, which is	the write register for KEY-ON, Block Number, FNUM (high	bits))
+		mov     cx, ax                ; copy the register value into CX
+		mov     al, dl                ; then copy the	low byte of DX,	replacing the low byte of AX
+		add     al, 0A0h              ; add A0 to the low byte of AX (this is the write register for  FNUM (Lower 8 bits))
+		mov     ah, cl                ; copy the low byte of CX to the high byte of AX
+		mov     si, ax                ; copy AX to SI
+		call    ChipWrite
+		mov     ax, si                ; copy SI to AX
+		add     al, 10h               ; add 10 to the	low byte of AX (A0 becomes BO, which is	the write register for KEY-ON, Block Number, FNUM (high	bits))
 
 
-		mov	ah, ch		; copy the high	byte of	CX to the high byte of AX
+		mov     ah, ch                ; copy the high	byte of	CX to the high byte of AX
 
 ; =============== S U B	R O U T	I N E =======================================
 
 
 
 ChipWrite:
-		push	dx
-		mov	dx, 388h
-		out	dx, al
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		inc	dx
-		mov	al, ah
-		out	dx, al
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		in	al, dx
-		pop	dx
+		push    dx
+		mov     dx, 388h
+		out     dx, al
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		inc     dx
+		mov     al, ah
+		out     dx, al
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		in      al, dx
+		pop     dx
 		retn
