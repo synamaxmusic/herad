@@ -140,16 +140,16 @@ iX_CLevelScaleAFT equ	27h              ; Carrier Output Level Scaling - Aftertou
 		jmp	TimerFF         ; 3B08:0112 (Called at the end of initialization)
 ; ---------------------------------------------------------------------------
 
-SizeOffset	dw 0                    ;; This is referenced a lot to parse the song file's header (it is always 2)
-		
-SongSegment	dw 0
-SongFileSize	dw 0
-SongSegment2	dw 0
+SizeOffset	dw      0               ;; This is referenced a lot to parse the song file's header (it is always 2)
 
-SongSpeed	dw 0
-MeasureCount	dw 0
-MIDITickCount	dw 0
-SongPlayCount	dw 0
+SongSegment	dw      0
+SongFileSize	dw      0
+SongSegment2	dw      0
+
+SongSpeed	dw      0
+MeasureCount	dw      0
+MIDITickCount	dw      0
+SongPlayCount	dw      0
 
 ; ---------------------------------------------------------------------------
 
@@ -203,7 +203,7 @@ EEx19E		db	0EEh
 
 BitTimer	dw	1
 
-unk_1A1		db	90h             ;; Possibly a marker to denote the start of the driver internals
+End_1A1:	nop                     ;; Possibly a marker to denote the start of the driver internals
 
 ; ------------------------ M U S I C  R A M ---------------------------------
 ;; Underscore in front of label name denotes driver internals
@@ -326,25 +326,25 @@ PortNum         dw	220h
 
 GrabHSQ:           
                 push    ss
-                pop     es               ; ES is 0FD9
-                mov     si, bp           ; SI is 418A
+                pop     es                    ; ES is 0FD9
+                mov     si, bp                ; SI is 418A
 
 LoadFileName: 
-                lods    word ptr es:[si] ; Load the string word at 0FD9:418A.  The value should be 4AFD
-                ;add     ax,0x0002       ; Add 2 to 4AFD, which gives us 4AFF
+                lods    word ptr es:[si]      ; Load the string word at 0FD9:418A.  The value should be 4AFD
+                ;add     ax,0x0002            ; Add 2 to 4AFD, which gives us 4AFF
 		;;;;;;;;;;;;;;;
-		db      05h		 ;; UASM doesn't use the 05 opcode for ADD.  After several tries,
-		dw      0002h		 ;; I'm left with no choice but to put this in to match up with the original HERAD driver
+		db      05h        ;; UASM doesn't use the 05 opcode for ADD.  After several tries,
+		dw      0002h      ;; I'm left with no choice but to put this in to match up with the original HERAD driver
 		;;;;;;;;;;;;;;;
-                mov     di, ax           ; 0FD9:4AFF is the offset for the string "NEWSAN.HSQ"
+                mov     di, ax                ; 0FD9:4AFF is the offset for the string "NEWSAN.HSQ"
                 push    cx
-                mov     cx, 9            ; put 9 in CX
-                mov     al, 2Eh ; '.'    ; place a period in the low byte of AX
-                repne scasb              ; stop when you encounter the period of the filename.  DI is going to be offset for the "H" in HSQ extension.
+                mov     cx, 9                 ; put 9 in CX
+                mov     al, 2Eh ; '.'         ; place a period in the low byte of AX
+                repne scasb                   ; stop when you encounter the period of the filename.  DI is going to be offset for the "H" in HSQ extension.
                 pop     cx
                 jnz     short LoadFileLOOP
-                mov     ax, word ptr cs:HSQ ; grab the "HSQ" (or in this case 5348) at 3B08:02C3 (0x1C3) and place it in AX
-                stosw                   ; go to the end of NEWSAN.HSQ string.
+                mov     ax, word ptr cs:HSQ   ; grab the "HSQ" (or in this case 5348) at 3B08:02C3 (0x1C3) and place it in AX
+                stosw                         ; go to the end of NEWSAN.HSQ string.
                 mov     al, byte ptr cs:HSQEND ; grab "Q" from "HSQ" at 3B08:02C5 and place it in AX's low byte
                 stosb
 
@@ -362,12 +362,12 @@ DriverInit:
 
 OPLStartUp:
 		call    GrabHSQ
-		mov     ax, 2001h       ; Enable Waveform Select at OPL register 01
-		call    ChipWrite       ; Write to OPL2
-		mov     ax, 0BDh        ; Disable Percussion Mode
-		call    ChipWrite       ; Write to OPL2
-		mov     ax, 4008h       ; Enable NOTE-SEL at OPL register 08
-		call    ChipWrite       ; Write to OPL2
+		mov     ax, 2001h             ; Enable Waveform Select at OPL register 01
+		call    ChipWrite             ; Write to OPL2
+		mov     ax, 0BDh              ; Disable Percussion Mode
+		call    ChipWrite             ; Write to OPL2
+		mov     ax, 4008h             ; Enable NOTE-SEL at OPL register 08
+		call    ChipWrite             ; Write to OPL2
 		push    cs
 		call    near ptr ShutUp
 		mov     bx, 0F00h
@@ -378,72 +378,72 @@ OPLStartUp:
 
 
 ShutUp:		
-		pushf                   ; clear eflags
-		cli                     ; clear IF flag in EFLAGS
+		pushf                         ; clear eflags
+		cli                           ; clear IF flag in EFLAGS
 		call    KeyOffAll
-		xor     ax, ax          ; clear AX
-		mov     cs:SongFlag, al ; write zero to SongFlag
+		xor     ax, ax                ; clear AX
+		mov     cs:SongFlag, al       ; write zero to SongFlag
 		popf
-		retf                    ; And the driver has stopped!
+		retf                          ; And the driver has stopped!
 
-CreateEEE:                              ; This routine is exclusive to the "DFADP" Sound Blaster HERAD driver
+CreateEEE:                                    ; These "EE" bytes are exclusive to the "DFADP" Sound Blaster HERAD driver
 		push    bx
 		push    dx
-		shr     al, 1           ; The value in AX before this starts is	78E6
+		shr     al, 1                 ; The value in AX before this starts is 78E6
 		shr     al, 1
 		shr     al, 1
-		mov     dx, ax          ; move 781C to DX
-		mov     bx, 0F078h      ; place F078 in BX
-		cmp     ah, bl          ; compare the low byte of BX with the high byte of AX.
+		mov     dx, ax                ; move 781C to DX
+		mov     bx, 0F078h            ; place F078 in BX
+		cmp     ah, bl                ; compare the low byte of BX with the high byte of AX.
 		jbe     short EEE1
 		mov     ah, bl
 
 EEE1:
-		xor     al, al          ; zero out AX's low byte
-		div     bh              ; divide AX by BX's high byte.  The answer should be 80
-		mul     dl              ; AX (80) x DL (1C) = E0
-		xchg    ah, dh          ; DX:781C and AX:0E00 now become AX:0E1C and DX:7800
-		sub     ah, bh          ; 0E - F0 = 88
-		neg     ah              ; two's compliment of 88 = 78
-		cmp     ah, bl          ; compare the two 78s
-		jbe     short EEE2      ; if AX is the incorrect value, continue, otherwise jump
-		mov     ah, bl          ; if AX isn't right, correct it by making it 7800
+		xor     al, al                ; zero out AX's low byte
+		div     bh                    ; divide AX by BX's high byte.  The answer should be 80
+		mul     dl                    ; AX (80) x DL (1C) = E0
+		xchg    ah, dh                ; DX:781C and AX:0E00 now become AX:0E1C and DX:7800
+		sub     ah, bh                ; 0E - F0 = 88
+		neg     ah                    ; two's compliment of 88 = 78
+		cmp     ah, bl                ; compare the two 78s
+		jbe     short EEE2            ; if AX is the incorrect value, continue, otherwise jump
+		mov     ah, bl                ; if AX isn't right, correct it by making it 7800
 
 EEE2:
-		xor     al, al          ; zero out AX's low byte (it was already zero though)
-		div     bh              ; divide 7800 with F0 = 80
-		mul     dl              ; 80 x 1C = E00
+		xor     al, al                ; zero out AX's low byte (it was already zero though)
+		div     bh                    ; divide 7800 with F0 = 80
+		mul     dl                    ; 80 x 1C = E00
 		shr     ax, 1
 		shr     ax, 1
 		shr     ax, 1
-		shr     ax, 1           ; now AX is E0
-		mov     ah, dh          ; AX is now EE0
+		shr     ax, 1                 ; now AX is E0
+		mov     ah, dh                ; AX is now EE0
 		and     ax, 0FF0h
-		or      al, ah          ; AX is now EEE
+		or      al, ah                ; AX is now EEE
 		pop     dx
 		pop     bx
 		retn
 		
 TimerFF:
 		call    CreateEEE
-		mov     cs:EEx19E, al       ; write EE at 0x9E
-		mov     cs:EEx19D, al       ; write EE at 0x9D
-		mov     cs:BitTimer, 0FFFFh ; write FFFF at 0x9F
+		mov     cs:EEx19E, al         ; write EE at 0x9E
+		mov     cs:EEx19D, al         ; write EE at 0x9D
+		mov     cs:BitTimer, 0FFFFh   ; write FFFF at 0x9F
 		retf
 		
 StopDriver:
 		push    ax
 		mov     ax, bx
 		call    CreateEEE
-		mov     cs:EEx19D, al   ; Zero out that middle EE
-		pop     ax              ; value is 12C...don't know what this is
-		mov     bx, 0FFFFh      ; BX = FFFF
-		;cmp    ax, 60h         ; compare with 60
+		mov     cs:EEx19D, al         ; Zero out that middle EE
+		pop     ax                    ; value is 12C...don't know what this is
+		mov     bx, 0FFFFh            ; BX = FFFF
+		;cmp    ax, 60h               ; compare with 60
 		;;
 		db      3Dh
 		dw      60h
 		;;
-		jb      short StopSongFlag ; jump if below
+		jb      short StopSongFlag    ; jump if below
 		mov     bx, 0AAAAh
 		cmp     ax, 0C0h
 		jb      short StopSongFlag
@@ -456,34 +456,34 @@ StopDriver:
 		xor     bl, bl
 
 StopSongFlag:
-		mov     cs:BitTimer, bx ; write either FFFF, AAAA, 8888, or 8080 to the BitTimer
-		mov     al, cs:SongFlag ; move the SongFlag to AX's low byte
+		mov     cs:BitTimer, bx       ; write either FFFF, AAAA, 8888, or 8080 to the BitTimer
+		mov     al, cs:SongFlag       ; move the SongFlag to AX's low byte
 		or      al, al
 		jns     short StopDriverEnd
-		or      al, 40h         ; turn that 80 into a C0
-		mov     cs:SongFlag, al ; write C0 to SongFlag!
+		or      al, 40h               ; turn that 80 into a C0
+		mov     cs:SongFlag, al       ; write C0 to SongFlag!
 
 StopDriverEnd:
 		retf
 ; ---------------------------------------------------------------------------
 
 ChangeSong:
-		mov     cs:ChangeSongFlag, 1 ; This byte was left over from the "CD-Style" playback function from Dune and KGB.
-		                             ; When this byte was enabled, a new song would play after the current song finished
-		                             ; playing or ran out of loop count.  This feature doesn't work in MegaRace, as the
-		                             ; songs will just stop playing, except for PAGA, DETRITUS, and LENNY, as those songs
-		                             ; will play forever.
+		mov     cs:ChangeSongFlag, 1  ; This byte was left over from the "CD-Style" playback function from Dune and KGB.
+		                              ; When this byte was enabled, a new song would play after the current song finished
+		                              ; playing or ran out of loop count.  This feature doesn't work in MegaRace, as the
+		                              ; songs will just stop playing, except for PAGA, DETRITUS, and LENNY, as those songs
+		                              ; will play forever.
 		mov     al, cs:SongFlag
 		retf
 ; ---------------------------------------------------------------------------
 ; Temporary RAM used for loading song data
 TempRAM:
-Temp		dw      0                    ;;3BAh
-		dw      0                    ;; combined with Temp to become a 32-bit value
-Temp2		dw      0                    ;;3BEh
-Temp3		db      0                    ;;3C0h
-Temp4		db      0                    ;;3C1h
-Temp5		dw      0                    ;;3C2h
+Temp		dw      0                     ;;3BAh
+		dw      0                     ;; combined with Temp to become a 32-bit value
+Temp2		dw      0                     ;;3BEh
+Temp3		db      0                     ;;3C0h
+Temp4		db      0                     ;;3C1h
+Temp5		dw      0                     ;;3C2h
 ; ---------------------------------------------------------------------------
 
 GetSongData:
@@ -1255,8 +1255,8 @@ GrabMidiDelay:
 		lods    byte ptr es:[si]      ; grab MIDI delay byte at ES (SongSegment):[SI] (TrackPosition) again.   Increment SI by 1 again.  If the previous delay byte is larger than 7F, this is where the second delay byte will go.
 		or      al, al
 		js      short GrabMidiDelay   ; take the low byte of CX and copy it to the high byte of CX
-		and     ax, 7F7F              ; perform AND on AX with 7F7F.  Each bit of the result of the AND instruction is a 1 if both corresponding bits of the operands are 1; otherwise, it becomes a 0.
-		and     cx, 7F7F              ; perform AND on CX with 7F7F
+		and     ax, 7F7Fh             ; perform AND on AX with 7F7F.  Each bit of the result of the AND instruction is a 1 if both corresponding bits of the operands are 1; otherwise, it becomes a 0.
+		and     cx, 7F7Fh             ; perform AND on CX with 7F7F
 		shl     cl, 1                 ; shift logical left 1 bit at low byte of CX, ZF flag changes
 		shr     cx, 1                 ; shift logical right 1 bit for CX
 		shl     al, 1                 ; shift logical left 1 bit at low byte of AX, ZF flag changes
